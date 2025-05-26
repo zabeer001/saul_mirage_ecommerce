@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ 
+    <style>
+      .active-btn {
+        background-color: #bdeef8 !important;
+        color: #006b80 !important;
+      }
+
+      .inactive-btn {
+        background-color: transparent !important;
+        color: #d6d6d6 !important;
+      }
+
+      /* Red line base styles */
+      .red-line {
+        background-color: #ed6b6b;
+        height: 2px;
+        margin-top: 8px;
+        margin-bottom: 20px;
+      }
+
+      /* Desktop styles (default) */
+      .post-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 120px;
+      }
+
+      .post-image {
+        height: 394px;
+        width: 691px;
+      }
+
+      .post-text {
+        width: 561px;
+      }
+
+      .section-padding {
+        padding: 144px 20px;
+      }
+
+      .category-buttons {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 40px;
+        padding: 40px 20px;
+        flex-wrap: wrap;
+      }
+
+      /* Large Desktop */
+      @media (min-width: 1400px) {
+        .post-container {
+          gap: 150px;
+        }
+      }
+
+      /* MacBook Air / Medium Desktop (1366px and similar) */
+      @media (max-width: 1400px) and (min-width: 1200px) {
+        .post-container {
+          gap: 100px;
+        }
+        .post-image {
+          width: 600px;
+          height: 350px;
+        }
+        .post-text {
+          width: 500px;
+        }
+      }
+
+      /* Small Desktop / Large Laptop */
+      @media (max-width: 1300px) {
+        .post-container {
+          gap: 80px;
+        }
+        .post-image {
+          width: 550px;
+          height: 320px;
+        }
+        .post-text {
+          width: 450px;
+        }
+      }
+
+      /* MacBook Air 13" and similar laptops */
+      @media (max-width: 1200px) {
+        .post-container {
+          gap: 60px;
+        }
+        .post-image {
+          width: 480px;
+          height: 290px;
+        }
+        .post-text {
+          width: 420px;
+        }
+        .section-padding {
+          padding: 120px 20px;
+        }
+      }
+
+      /* Small Laptop */
+      @media (max-width: 1100px) {
+        .post-container {
+          gap: 50px;
+        }
+        .post-image {
+          width: 450px;
+          height: 280px;
+        }
+        .post-text {
+          width: 400px;
+        }
+        .section-padding {
+          padding: 100px 20px;
+        }
+      }
+
+      /* Large Tablet */
+      @media (max-width: 1000px) {
+        .post-container {
+          gap: 40px;
+        }
+        .post-image {
+          width: 420px;
+          height: 260px;
+        }
+        .post-text {
+          width: 380px;
+        }
+      }
+
+      /* Tablet */
+      @media (max-width: 900px) {
+        .post-container {
+          flex-direction: column;
+          gap: 40px;
+          text-align: center;
+        }
+        .post-image {
+          width: 100%;
+          max-width: 600px;
+          height: 300px;
+        }
+        .post-text {
+          width: 100%;
+          max-width: 600px;
+        }
+        .section-padding {
+          padding: 80px 30px;
+        }
+        .category-buttons {
+          gap: 20px;
+          padding: 30px 20px;
+        }
+        .post-title {
+          font-size: 28px !important;
+        }
+        .decorative-circle {
+          display: none;
+        }
+        .decorative-vector {
+          display: none;
+        }
+        .red-line {
+          margin: 8px auto 20px auto;
+        }
+      }
+
+      /* Mobile Large */
+      @media (max-width: 768px) {
+        .category-buttons {
+          gap: 15px;
+          padding: 25px 15px;
+          justify-content: center;
+        }
+        .filter-btn {
+          padding: 10px 16px !important;
+          font-size: 14px !important;
+          font-weight: 600 !important;
+          border-radius: 4px;
+          white-space: nowrap;
+        }
+        .post-image {
+          height: 250px;
+          max-width: 90vw;
+        }
+        .post-text {
+          max-width: 90vw;
+          padding: 0 15px;
+        }
+        .post-title {
+          font-size: 24px !important;
+          line-height: 1.3 !important;
+          margin: 20px 0 15px 0 !important;
+        }
+        .post-excerpt {
+          font-size: 16px !important;
+          line-height: 1.5 !important;
+        }
+        .section-padding {
+          padding: 60px 15px;
+        }
+        .category-name {
+          font-size: 14px !important;
+          margin-bottom: 5px !important;
+        }
+        .red-line {
+          margin: 8px auto 20px auto;
+        }
+      }
+
+      /* Mobile Medium */
+      @media (max-width: 480px) {
+        .category-buttons {
+          gap: 10px;
+          padding: 20px 10px;
+        }
+        .filter-btn {
+          padding: 8px 12px !important;
+          font-size: 12px !important;
+        }
+        .post-image {
+          height: 220px;
+        }
+        .post-title {
+          font-size: 20px !important;
+        }
+        .post-excerpt {
+          font-size: 14px !important;
+        }
+        .section-padding {
+          padding: 40px 10px;
+        }
+        .category-name {
+          font-size: 12px !important;
+        }
+        .red-line {
+          margin: 6px auto 18px auto;
+        }
+      }
+
+      /* Mobile Small */
+      @media (max-width: 360px) {
+        .category-buttons {
+          gap: 8px;
+          padding: 15px 8px;
+        }
+        .filter-btn {
+          padding: 6px 10px !important;
+          font-size: 11px !important;
+        }
+        .post-image {
+          height: 200px;
+        }
+        .post-title {
+          font-size: 18px !important;
+        }
+        .post-excerpt {
+          font-size: 13px !important;
+        }
+        .section-padding {
+          padding: 30px 8px;
+        }
+        .red-line {
+          margin: 6px auto 16px auto;
+        }
+      }
+    </style>
+    <title>blog</title>
+  </head>
+  <body>
+
+    <main>
+      <!-- <section class="container mx-auto"> -->
+      <div id="category-buttons" class="category-buttons"></div>
+      <!-- </section> -->
+
+      <section>
+        <section id="post-container"></section>
+      </section>
+      <!-- ======= Blog Section End ============ -->
+    </main>
+
+    <!-- script file -->
+    <script>
+      document.addEventListener("DOMContentLoaded", async () => {
+        const btnContainer = document.getElementById("category-buttons");
+        const postContainer = document.getElementById("post-container");
+        const categoryURL = "https://thedcenter.com/wp-json/wp/v2/categories";
+
+        // Function to calculate red line width based on category name and screen size
+        function calculateRedLineWidth(categoryName) {
+          const baseWidth = categoryName.length * 8; // Base calculation: 8px per character
+          const screenWidth = window.innerWidth;
+
+          // Responsive multipliers for different screen sizes
+          let multiplier = 1;
+
+          if (screenWidth >= 1400) {
+            multiplier = 1.2; // Large Desktop
+          } else if (screenWidth >= 1200) {
+            multiplier = 1.1; // MacBook Air / Medium Desktop
+          } else if (screenWidth >= 1100) {
+            multiplier = 1.0; // Small Desktop / Large Laptop
+          } else if (screenWidth >= 1000) {
+            multiplier = 0.95; // Large Tablet
+          } else if (screenWidth >= 900) {
+            multiplier = 0.9; // Tablet
+          } else if (screenWidth >= 768) {
+            multiplier = 0.85; // Mobile Large
+          } else if (screenWidth >= 480) {
+            multiplier = 0.8; // Mobile Medium
+          } else {
+            multiplier = 0.75; // Mobile Small
+          }
+
+          const calculatedWidth = Math.round(baseWidth * multiplier);
+
+          // Set minimum and maximum widths
+          const minWidth = 30;
+          const maxWidth = screenWidth >= 900 ? 150 : 120;
+
+          return Math.max(minWidth, Math.min(calculatedWidth, maxWidth));
+        }
+
+        // Fetch and render category buttons
+        try {
+          const res = await fetch(categoryURL);
+          const categories = await res.json();
+
+          categories.forEach((category, index) => {
+            const btn = document.createElement("button");
+            btn.className =
+              "filter-btn py-[12px] px-[18px] font-[Outfit] text-base font-black leading-6 transition-all duration-200 !rounded-none" +
+              (index === 0 ? "active-btn" : "inactive-btn");
+            btn.innerText = category.name;
+
+            btn.addEventListener("click", () => {
+              document.querySelectorAll(".filter-btn").forEach((b) => {
+                b.classList.remove("active-btn");
+                b.classList.add("inactive-btn");
+              });
+              btn.classList.add("active-btn");
+              btn.classList.remove("inactive-btn");
+
+              fetchPostsByCategory(category.id, category.name);
+            });
+
+            btnContainer.appendChild(btn);
+
+            // Load the first category by default
+            if (index === 0) {
+              fetchPostsByCategory(category.id, category.name);
+            }
+          });
+        } catch (error) {
+          console.error("Error fetching categories:", error);
+        }
+
+        // Fetch image from media endpoint using featured_media
+        async function fetchImageUrl(mediaId) {
+          try {
+            const res = await fetch(
+              `https://thedcenter.com/wp-json/wp/v2/media/${mediaId}`
+            );
+            const media = await res.json();
+            return (
+              media.source_url ||
+              "https://via.placeholder.com/691x394.png?text=No+Image"
+            );
+          } catch (e) {
+            console.error("Error fetching media:", e);
+            return "https://via.placeholder.com/691x394.png?text=No+Image";
+          }
+        }
+
+        // Fetch and display posts based on category
+        async function fetchPostsByCategory(categoryId, categoryName) {
+          const postURL = `https://thedcenter.com/wp-json/wp/v2/posts?categories=${categoryId}&per_page=10`;
+
+          try {
+            const res = await fetch(postURL);
+            const posts = await res.json();
+
+            postContainer.innerHTML = "";
+
+            if (!posts.length) {
+              postContainer.innerHTML = `<p class='text-center py-10 text-gray-500'>No posts found.</p>`;
+              return;
+            }
+
+            for (let index = 0; index < posts.length; index++) {
+              const post = posts[index];
+
+              const imageUrl = await fetchImageUrl(post.featured_media);
+              const excerpt = stripHTML(post.excerpt.rendered).slice(0, 300);
+              const isEven = index % 2 === 0;
+              const redLineWidth = calculateRedLineWidth(categoryName);
+
+              let html = "";
+
+              if (isEven) {
+                // EVEN index layout
+                html = `     <a href="${post.link}"> 
+            <div class="bg-[#F7FDFF]">
+              <section class="section-padding">
+                <div class="post-container">
+                  <div class="relative post-image z-10">
+                    <div class="decorative-circle w-[60px] h-[60px] rounded-full bg-[#BDEEF8] absolute right-[-30px] top-[-30px] z-0"></div>
+                    <div class="absolute inset-0 bg-red-400 z-10 flex items-center justify-center overflow-hidden">
+                      <img src="${imageUrl}" alt="${post.title.rendered}" class="h-full w-full object-cover" />
+                    </div>
+                  </div>
+                  <div class="post-text">
+                    <p class="category-name text-[16px] font-normal font-[Outfit] leading-[14px] uppercase">${categoryName}</p>
+                    <div class="red-line" style="width: ${redLineWidth}px;"></div>
+                    <h1 class="post-title pb-2 text-[#333333] text-[34px] font-[Outfit] font-bold">${post.title.rendered}</h1>
+                    <p class="post-excerpt text-[18px] font-normal font-[Outfit] leading-6 text-[#333333]">${excerpt}...</p>
+                  </div>
+                </div>
+              </section>
+            </div>
+            </a>
+          `;
+              } else {
+                // ODD index layout
+                html = `
+                 <a href="${post.link}"> 
+            <div>
+              <section class="section-padding">
+                <div class="post-container">
+                  <div class="post-text">
+                    <p class="category-name text-[16px] font-normal font-[Outfit] leading-[14px] uppercase">${categoryName}</p>
+                    <div class="red-line" style="width: ${redLineWidth}px;"></div>
+                    <h1 class="post-title pb-2 text-[#333333] text-[34px] font-[Outfit] font-bold">${post.title.rendered}</h1>
+                    <p class="post-excerpt text-[18px] font-normal font-[Outfit] leading-6 text-[#333333]">${excerpt}...</p>
+                  </div>
+                  <div class="post-image relative z-20">
+                    <img
+                      src="./imges/vector.png"
+                      alt=""
+                      class="decorative-vector absolute left-[-60px] top-[35px] w-[132px] h-[76px] z-0"
+                    />
+                    <div class="absolute inset-0 bg-red-400 z-10 flex items-center justify-center overflow-hidden">
+                      <img src="${imageUrl}" alt="${post.title.rendered}" class="h-full w-full object-cover" />
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+             </a>
+          `;
+              }
+
+              postContainer.insertAdjacentHTML("beforeend", html);
+            }
+          } catch (error) {
+            console.error("Error fetching posts:", error);
+          }
+        }
+
+        // Utility to strip HTML tags
+        function stripHTML(html) {
+          const div = document.createElement("div");
+          div.innerHTML = html;
+          return div.textContent || div.innerText || "";
+        }
+
+        // Recalculate red line widths on window resize
+        window.addEventListener("resize", () => {
+          const redLines = document.querySelectorAll(".red-line");
+          redLines.forEach((line, index) => {
+            const categoryElement = line.previousElementSibling;
+            if (categoryElement && categoryElement.textContent) {
+              const categoryName = categoryElement.textContent;
+              const newWidth = calculateRedLineWidth(categoryName);
+              line.style.width = `${newWidth}px`;
+            }
+          });
+        });
+      });
+let fucking_class = document.querySelectorAll(".e-con-inner");
+if (fucking_class[12]) {
+    // Remove all CSS classes
+    fucking_class[12].classList.remove(...fucking_class[12].classList);
+    
+    // Remove all inline styles
+    fucking_class[12].removeAttribute("style");
+}
+    </script>
+  </body>
+</html>

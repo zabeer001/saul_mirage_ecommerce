@@ -54,11 +54,13 @@ class AuthController extends Controller
     // Login user and get token
     public function login(Request $request)
     {
+        // return 'ok';
         try {
             $validator = Validator::make($request->all(), [
                 'email' => 'required|email',
                 'password' => 'required|string',
             ]);
+            // return 'ok';
 
             if ($validator->fails()) {
                 return response()->json([
@@ -69,6 +71,7 @@ class AuthController extends Controller
             }
 
             $credentials = $request->only('email', 'password');
+            // return 0;
 
             if (!$token = JWTAuth::attempt($credentials)) {
                 return response()->json([
@@ -114,6 +117,7 @@ class AuthController extends Controller
     public function logout()
     {
         try {
+            return 'ok';
             JWTAuth::invalidate(JWTAuth::getToken());
 
             return response()->json([
