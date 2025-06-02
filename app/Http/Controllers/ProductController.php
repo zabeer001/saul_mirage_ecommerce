@@ -16,13 +16,13 @@ class ProductController extends Controller
         $this->middleware('auth:api')->only(['store', 'update', 'destroy']);
     }
 
-    protected array $typeOfFields = ['textFields','imageFields'];
+    protected array $typeOfFields = ['textFields', 'imageFields'];
 
     protected array $textFields = [
         'name',
         'description',
         'category_id',
-        'price'
+        'price',
     ];
 
     protected $imageFields = ['image'];
@@ -42,7 +42,9 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|string',
-            
+            'images' => 'required|array',
+            'images.*' => 'nullable|image|max:2048', // max 2MB per image
+            'price' => 'required|integer|min:0',
         ]);
     }
 
@@ -63,7 +65,10 @@ class ProductController extends Controller
             $search = $validated['search'] ?? null;
             $paginate_count = $validated['paginate_count'] ?? 10;
 
-            $query = Product::query();
+            $query = Product::with([
+                'media:id,product_id,file_path',
+                'category:id,name'
+            ]);
 
             if ($search) {
                 $query->where('name', 'like', $search . '%');
@@ -79,6 +84,7 @@ class ProductController extends Controller
                 'per_page' => $data->perPage(),
                 'total' => $data->total(),
             ], Response::HTTP_OK);
+
         } catch (\Exception $e) {
             return HelperMethods::handleException($e, 'Failed to fetch data.');
         }
@@ -116,8 +122,19 @@ class ProductController extends Controller
             );
 
             $data->save();
-            
-            $data_2 = new Media();
+
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    $newImagePath = HelperMethods::uploadImage($image); // handles upload and returns path
+
+                    Media::create([
+                        'product_id' => $data->id,
+                        'file_path' => $newImagePath,
+
+                        // Add more fields if needed
+                    ]);
+                }
+            }
             return response()->json([
                 'success' => true,
                 'message' => 'data created successfully.',
@@ -147,35 +164,64 @@ class ProductController extends Controller
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, Product $data)
-    {
-        try {
-            // Validate request
-            $validated = $this->validateRequest($request);
+  /**
+ * Update the specified resource in storage.
+ *
+ * @param Request $request
+ * @param Product $data
+ * @return \Illuminate\Http\JsonResponse
+ */
+public function update(Request $request, Product $data)
+{
+    try {
+        // Validate request
+        $validated = $this->validateRequest($request);
 
-            // Populate model fields using helper method
-            HelperMethods::populateModelFields(
-                $data,
-                $request,
-                $validated,
-                $this->typeOfFields,
-                [
-                    'textFields' => $this->textFields,
-                ]
-            );
+        // Populate model fields using helper method
+        HelperMethods::populateModelFields(
+            $data,
+            $request,
+            $validated,
+            $this->typeOfFields,
+            [
+                'textFields' => $this->textFields,
+            ]
+        );
 
-            // Save updated model
-            $data->save();
+        // Save updated model
+        $data->save();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Data updated successfully.',
-                'data' => $data,
-            ], Response::HTTP_OK);
-        } catch (\Exception $e) {
-            return HelperMethods::handleException($e, 'Failed to update Data.');
+        // Handle image uploads if present
+        if ($request->hasFile('images')) {
+            // Delete old images
+            $oldImages = Media::where('product_id', $data->id)->get();
+            foreach ($oldImages as $oldImage) {
+                HelperMethods::deleteImage($oldImage->file_path); // Delete image file
+                $oldImage->delete(); // Delete media record
+            }
+
+            // Upload new images
+            foreach ($request->file('images') as $image) {
+                $newImagePath = HelperMethods::uploadImage($image); // Handles upload and returns path
+                if ($newImagePath) {
+                    Media::create([
+                        'product_id' => $data->id,
+                        'file_path' => $newImagePath,
+                        // Add more fields if needed
+                    ]);
+                }
+            }
         }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data updated successfully.',
+            'data' => $data,
+        ], Response::HTTP_OK);
+    } catch (\Exception $e) {
+        return HelperMethods::handleException($e, 'Failed to update data.');
     }
+}
 
 
     public function destroy(Product $data)
