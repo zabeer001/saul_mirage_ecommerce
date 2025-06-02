@@ -83,7 +83,8 @@ class AuthController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Login successful',
-                'token' => $token
+                'token' => $token,
+                'data' => auth()->user()
             ]);
 
         } catch (Exception $e) {
@@ -117,7 +118,7 @@ class AuthController extends Controller
     public function logout()
     {
         try {
-            return 'ok';
+            // return 'ok';
             JWTAuth::invalidate(JWTAuth::getToken());
 
             return response()->json([

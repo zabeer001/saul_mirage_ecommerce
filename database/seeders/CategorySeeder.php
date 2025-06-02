@@ -13,12 +13,8 @@ class CategorySeeder extends Seeder
         $categories = [
             ['name' => 'Electronics', 'type' => 'Products'],
             ['name' => 'Clothing', 'type' => 'Fashion'],
-            ['name' => 'Home & Kitchen', 'type' => 'Home'],
-            ['name' => 'Beauty & Personal Care', 'type' => 'Health'],
-            ['name' => 'Books', 'type' => 'Media'],
-            ['name' => 'Sports & Outdoors', 'type' => 'Lifestyle'],
-            ['name' => 'Toys & Games', 'type' => 'Entertainment'],
-            ['name' => 'Automotive', 'type' => 'Vehicles'],
+            ['name' => 'Home & Kitchen', 'type' => 'Products'],
+            ['name' => 'Beauty & Personal Care', 'type' => 'Fashion'],
         ];
 
         foreach ($categories as $cat) {

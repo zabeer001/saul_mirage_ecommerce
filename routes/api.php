@@ -2,6 +2,7 @@
 
 
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -28,6 +29,7 @@ Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:api')
 
 
 Route::apiResource('categories', CategoryController::class);
+Route::apiResource('products', ProductController::class);
 
 
 
