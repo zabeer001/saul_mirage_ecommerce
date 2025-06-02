@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Media;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Helpers\HelperMethods;
@@ -20,7 +21,8 @@ class ProductController extends Controller
     protected array $textFields = [
         'name',
         'description',
-        'category_id'
+        'category_id',
+        'price'
     ];
 
     protected $imageFields = ['image'];
@@ -114,7 +116,8 @@ class ProductController extends Controller
             );
 
             $data->save();
-
+            
+            $data_2 = new Media();
             return response()->json([
                 'success' => true,
                 'message' => 'data created successfully.',

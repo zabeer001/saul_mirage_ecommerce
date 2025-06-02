@@ -29,6 +29,7 @@ Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:api')
 
 
 Route::apiResource('categories', CategoryController::class);
+Route::get('categories-by-type', [CategoryController::class, 'categoriesByType']);
 Route::apiResource('products', ProductController::class);
 
 

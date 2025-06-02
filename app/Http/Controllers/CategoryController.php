@@ -199,4 +199,8 @@ class CategoryController extends Controller
             return HelperMethods::handleException($e, 'Failed to delete category.');
         }
     }
+    public function categoriesByType()
+    {
+        return Category::all()->groupBy('type');
+    }
 }

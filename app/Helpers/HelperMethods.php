@@ -99,6 +99,13 @@ class HelperMethods
                             $model->$field = $validated[$field];
                         }
                         break;
+                    case 'arrayOfMedia':
+                        if ($request->hasFile($field)) {
+                            $model->$field = isset($model->$field)
+                                ? self::updateImage($request->file($field), $model->$field)
+                                : self::uploadImage($request->file($field));
+                        }
+                        break;
                 }
             }
         }
