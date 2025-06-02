@@ -4,28 +4,57 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Helpers\HelperMethods;
+use Symfony\Component\HttpFoundation\Response;
 
 class CategoryController extends Controller
 {
-     public function __construct()
+    public function __construct()
     {
         // Apply JWT authentication middleware only to store, update, and destroy methods
         $this->middleware('auth:api')->only(['store', 'update', 'destroy']);
     }
+
+    protected array $typeOfFields = ['textFields'];
+
+    protected array $textFields = [
+        'name',
+        'description',
+        'type',
+    ];
+
+    /**
+     * Validate the request data for category creation or update.
+     *
+     * @param Request $request
+     * @return array
+     */
+    protected function validateRequest(Request $request)
+    {
+        return $request->validate([
+            'name' => 'required|string|max:255',
+            'type' => 'nullable|string',
+            'description' => 'nullable|string',
+        ]);
+    }
+
     /**
      * Display a listing of the resource.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
-     public function index(Request $request)
+    public function index(Request $request)
     {
-        $validated = $request->validate([
-            'paginate_count' => 'nullable|integer|min:1',
-            'search' => 'nullable|string|max:255',
-        ]);
-
-        $search = $validated['search'] ?? null;
-        $paginate_count = $validated['paginate_count'] ?? 10;
-
         try {
+            $validated = $request->validate([
+                'paginate_count' => 'nullable|integer|min:1',
+                'search' => 'nullable|string|max:255',
+            ]);
+
+            $search = $validated['search'] ?? null;
+            $paginate_count = $validated['paginate_count'] ?? 10;
+
             $query = Category::query();
 
             if ($search) {
@@ -41,12 +70,9 @@ class CategoryController extends Controller
                 'total_pages' => $categories->lastPage(),
                 'per_page' => $categories->perPage(),
                 'total' => $categories->total(),
-            ]);
+            ], Response::HTTP_OK);
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to fetch categories.',
-                'error' => $e->getMessage(),
-            ], 500);
+            return HelperMethods::handleException($e, 'Failed to fetch categories.');
         }
     }
 
@@ -60,34 +86,43 @@ class CategoryController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
-     public function store(Request $request)
+    public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            // 'description' => 'nullable|string',
-        ]);
-
         try {
-            // Get the authenticated user (optional, if you need to associate the category with the user)
+            $validated = $this->validateRequest($request);
 
+            $data = new Category();
 
-            $category = Category::create($request->all());
+            HelperMethods::populateModelFields(
+                $data,
+                $request,
+                $validated,
+                $this->typeOfFields,
+                [
+                    'textFields' => $this->textFields,
+                ]
+            );
+
+            $data->save();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Category created successfully.',
-                'data' => $category,
-            ], 201);
+                'data' => $data,
+            ], Response::HTTP_CREATED);
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to create category.',
-                'error' => $e->getMessage(),
-            ], 500);
+            return HelperMethods::handleException($e, 'Failed to create category.');
         }
     }
+
     /**
      * Display the specified resource.
+     *
+     * @param Category $category
      */
     public function show(Category $category)
     {
@@ -96,6 +131,8 @@ class CategoryController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     *
+     * @param Category $category
      */
     public function edit(Category $category)
     {
@@ -104,22 +141,49 @@ class CategoryController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, Category $category)
+    public function update(Request $request, $id)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            // 'description' => 'nullable|string',
-            // 'status' => 'nullable|string|max:255',
-        ]);
+        try {
+            // Validate request
+            $validated = $this->validateRequest($request);
 
-        $category->update($request->all());
+            // Retrieve the category by ID
+            $data = Category::findOrFail($id);
 
-        return response()->json($category);
+            // Populate model fields using helper method
+            HelperMethods::populateModelFields(
+                $data,
+                $request,
+                $validated,
+                $this->typeOfFields,
+                [
+                    'textFields' => $this->textFields,
+                ]
+            );
+
+            // Save updated model
+            $data->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Category updated successfully.',
+                'data' => $data,
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return HelperMethods::handleException($e, 'Failed to update category.');
+        }
     }
 
     /**
      * Remove the specified resource from storage.
+     *
+     * @param Category $category
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(Category $category)
     {
@@ -127,25 +191,12 @@ class CategoryController extends Controller
             // Attempt to delete the category
             $category->delete();
 
-            // Return a success response
             return response()->json([
                 'success' => true,
-                'message' => 'Category deleted successfully'
-            ], 200);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // Handle case where category is not found
-            return response()->json([
-                'success' => false,
-                'message' => 'Category not found'
-            ], 404);
+                'message' => 'Category deleted successfully',
+            ], Response::HTTP_OK);
         } catch (\Exception $e) {
-            // Handle general errors
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to delete category',
-                'error' => $e->getMessage()
-            ], 500);
+            return HelperMethods::handleException($e, 'Failed to delete category.');
         }
     }
-
 }

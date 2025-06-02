@@ -2,30 +2,31 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Category;
+use Illuminate\Support\Str;
 
 class CategorySeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
-    public function run()
+    public function run(): void
     {
         $categories = [
-            'Electronics',
-            'Clothing',
-            'Home & Kitchen',
-            'Beauty & Personal Care',
-            'Books',
-            'Sports & Outdoors',
-            'Toys & Games',
-            'Automotive',
+            ['name' => 'Electronics', 'type' => 'Products'],
+            ['name' => 'Clothing', 'type' => 'Fashion'],
+            ['name' => 'Home & Kitchen', 'type' => 'Home'],
+            ['name' => 'Beauty & Personal Care', 'type' => 'Health'],
+            ['name' => 'Books', 'type' => 'Media'],
+            ['name' => 'Sports & Outdoors', 'type' => 'Lifestyle'],
+            ['name' => 'Toys & Games', 'type' => 'Entertainment'],
+            ['name' => 'Automotive', 'type' => 'Vehicles'],
         ];
 
-        foreach ($categories as $name) {
-            Category::create(['name' => $name]);
+        foreach ($categories as $cat) {
+            Category::create([
+                'name' => $cat['name'],
+                'description' => 'Explore our wide selection of ' . Str::lower($cat['name']) . '.',
+                'type' => $cat['type'],
+            ]);
         }
     }
 }
