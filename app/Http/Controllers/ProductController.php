@@ -16,12 +16,11 @@ class ProductController extends Controller
         $this->middleware(['auth:api', 'admin'])->only(['store', 'update', 'destroy']);
     }
 
-    protected array $typeOfFields = ['textFields', 'imageFields'];
+    protected array $typeOfFields = ['textFields', 'imageFields', 'numericFields'];
 
     protected array $textFields = [
         'name',
         'description',
-        'category_id',
         'price',
     ];
 
@@ -45,6 +44,7 @@ class ProductController extends Controller
             'images' => 'nullable|array',
             'images.*' => 'nullable|max:2048',
             'price' => 'required|integer|min:0',
+            'category_id' => 'nullable|exists:categories,id', 
         ]);
     }
 
@@ -106,20 +106,26 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+
         try {
             $validated = $this->validateRequest($request);
 
-            $data = new Product();
 
+
+
+            $data = new Product();
             HelperMethods::populateModelFields(
                 $data,
                 $request,
                 $validated,
                 $this->typeOfFields,
                 [
+                    'numericFields' => $this->numericFields,
+                    'imageFields' => $this->imageFields,
                     'textFields' => $this->textFields,
                 ]
             );
+            $data->save();
 
             $data->save();
 
@@ -171,19 +177,22 @@ class ProductController extends Controller
      * @param Product $data
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, Product $data)
+    public function update(Request $request,$id)
     {
         try {
             // Validate request
             $validated = $this->validateRequest($request);
+              $data = Product::findOrFail($id);
 
             // Populate model fields using helper method
-            HelperMethods::populateModelFields(
+           HelperMethods::populateModelFields(
                 $data,
                 $request,
                 $validated,
                 $this->typeOfFields,
                 [
+                    'numericFields' => $this->numericFields,
+                    'imageFields' => $this->imageFields,
                     'textFields' => $this->textFields,
                 ]
             );
