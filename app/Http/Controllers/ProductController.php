@@ -41,9 +41,9 @@ class ProductController extends Controller
         return $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image' => 'nullable|string',
+            'image' => 'nullable|max:2048',
             'images' => 'required|array',
-            'images.*' => 'nullable|image|max:2048', // max 2MB per image
+            'images.*' => 'nullable|max:2048',
             'price' => 'required|integer|min:0',
         ]);
     }
