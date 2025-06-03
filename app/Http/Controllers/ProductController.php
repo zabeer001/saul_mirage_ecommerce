@@ -12,7 +12,7 @@ class ProductController extends Controller
 {
     public function __construct()
     {
-        // Apply JWT authentication middleware only to store, update, and destroy methods
+        // Apply JWT authentication and admin middleware only to store, update, and destroy methods
         $this->middleware(['auth:api', 'admin'])->only(['store', 'update', 'destroy']);
     }
 
