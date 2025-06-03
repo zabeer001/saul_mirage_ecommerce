@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use App\Helpers\HelperMethods;
 use Symfony\Component\HttpFoundation\Response;
 
-class ProductController extends Controller
+class OrderController extends Controller
 {
     public function __construct()
     {
@@ -16,35 +16,31 @@ class ProductController extends Controller
         $this->middleware(['auth:api', 'admin'])->only(['store', 'update', 'destroy']);
     }
 
-    protected array $typeOfFields = ['textFields', 'imageFields', 'numericFields'];
+
+    protected array $typeOfFields = ['textFields', 'numericFields'];
 
     protected array $textFields = [
-        'name',
-        'description',
-        'price',
+        'payment',
+        'status',
     ];
 
-    protected $imageFields = ['image'];
 
 
-    protected $numericFields = ['price', 'category_id'];
+    protected array $numericFields = [
+        // 'customer_id',
+        'user_id',
+        'total',
+        'promocode_id',
+    ];
 
-    /**
-     * Validate the request data for Product creation or update.
-     *
-     * @param Request $request
-     * @return array
-     */
-    protected function validateRequest(Request $request)
+    protected function validateOrderRequest(Request $request): array
     {
         return $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'image' => 'nullable|max:2048',
-            'images' => 'nullable|array',
-            'images.*' => 'nullable|max:2048',
-            'price' => 'required|integer|min:0',
-            'category_id' => 'nullable|exists:categories,id',
+            'user_id' => 'nullable|exists:users,id',
+            'total' => 'required|numeric|min:0',
+            'payment' => 'required|string|max:255',
+            'status' => 'required|string|in:pending,processing,completed,cancelled',
+            'promocode_id' => 'nullable|exists:promocodes,id',
         ]);
     }
 
