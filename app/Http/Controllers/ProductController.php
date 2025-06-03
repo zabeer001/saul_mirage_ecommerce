@@ -13,7 +13,7 @@ class ProductController extends Controller
     public function __construct()
     {
         // Apply JWT authentication middleware only to store, update, and destroy methods
-        $this->middleware('auth:api')->only(['store', 'update', 'destroy']);
+        $this->middleware(['auth:api', 'admin'])->only(['store', 'update', 'destroy']);
     }
 
     protected array $typeOfFields = ['textFields', 'imageFields'];
@@ -164,64 +164,64 @@ class ProductController extends Controller
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-  /**
- * Update the specified resource in storage.
- *
- * @param Request $request
- * @param Product $data
- * @return \Illuminate\Http\JsonResponse
- */
-public function update(Request $request, Product $data)
-{
-    try {
-        // Validate request
-        $validated = $this->validateRequest($request);
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param Request $request
+     * @param Product $data
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function update(Request $request, Product $data)
+    {
+        try {
+            // Validate request
+            $validated = $this->validateRequest($request);
 
-        // Populate model fields using helper method
-        HelperMethods::populateModelFields(
-            $data,
-            $request,
-            $validated,
-            $this->typeOfFields,
-            [
-                'textFields' => $this->textFields,
-            ]
-        );
+            // Populate model fields using helper method
+            HelperMethods::populateModelFields(
+                $data,
+                $request,
+                $validated,
+                $this->typeOfFields,
+                [
+                    'textFields' => $this->textFields,
+                ]
+            );
 
-        // Save updated model
-        $data->save();
+            // Save updated model
+            $data->save();
 
-        // Handle image uploads if present
-        if ($request->hasFile('images')) {
-            // Delete old images
-            $oldImages = Media::where('product_id', $data->id)->get();
-            foreach ($oldImages as $oldImage) {
-                HelperMethods::deleteImage($oldImage->file_path); // Delete image file
-                $oldImage->delete(); // Delete media record
-            }
+            // Handle image uploads if present
+            if ($request->hasFile('images')) {
+                // Delete old images
+                $oldImages = Media::where('product_id', $data->id)->get();
+                foreach ($oldImages as $oldImage) {
+                    HelperMethods::deleteImage($oldImage->file_path); // Delete image file
+                    $oldImage->delete(); // Delete media record
+                }
 
-            // Upload new images
-            foreach ($request->file('images') as $image) {
-                $newImagePath = HelperMethods::uploadImage($image); // Handles upload and returns path
-                if ($newImagePath) {
-                    Media::create([
-                        'product_id' => $data->id,
-                        'file_path' => $newImagePath,
-                        // Add more fields if needed
-                    ]);
+                // Upload new images
+                foreach ($request->file('images') as $image) {
+                    $newImagePath = HelperMethods::uploadImage($image); // Handles upload and returns path
+                    if ($newImagePath) {
+                        Media::create([
+                            'product_id' => $data->id,
+                            'file_path' => $newImagePath,
+                            // Add more fields if needed
+                        ]);
+                    }
                 }
             }
-        }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Data updated successfully.',
-            'data' => $data,
-        ], Response::HTTP_OK);
-    } catch (\Exception $e) {
-        return HelperMethods::handleException($e, 'Failed to update data.');
+            return response()->json([
+                'success' => true,
+                'message' => 'Data updated successfully.',
+                'data' => $data,
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return HelperMethods::handleException($e, 'Failed to update data.');
+        }
     }
-}
 
 
     public function destroy(Product $data)

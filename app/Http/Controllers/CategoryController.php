@@ -12,7 +12,7 @@ class CategoryController extends Controller
     public function __construct()
     {
         // Apply JWT authentication middleware only to store, update, and destroy methods
-        $this->middleware('auth:api')->only(['store', 'update', 'destroy']);
+        $this->middleware(['auth:api', 'admin'])->only(['store', 'update', 'destroy']);
     }
 
     protected array $typeOfFields = ['textFields'];
