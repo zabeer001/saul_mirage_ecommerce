@@ -3,6 +3,7 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PromoCodeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -31,6 +32,8 @@ Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:api')
 Route::apiResource('categories', CategoryController::class);
 Route::get('categories-by-type', [CategoryController::class, 'categoriesByType']);
 Route::apiResource('products', ProductController::class);
+Route::apiResource('promocodes', PromoCodeController::class);
+
 
 
 

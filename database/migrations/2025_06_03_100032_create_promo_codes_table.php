@@ -17,6 +17,7 @@ return new class extends Migration {
             $table->string('type');
             $table->string('status');
             $table->string('usage_limit');
+              $table->string('amount');
             $table->timestamps();
         });
     }

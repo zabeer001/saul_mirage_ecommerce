@@ -21,6 +21,7 @@ class PromoCodeController extends Controller
 
     protected array $numericFields = [
         'usage_limit',
+        'amount'
     ];
 
     protected function validateRequest(Request $request)
@@ -35,8 +36,7 @@ class PromoCodeController extends Controller
 
             // 🔢 Numeric Fields
             'usage_limit' => 'nullable|integer|min:0',
-
-            // 🖼️ Image Fields (none currently)
+            'amount' => 'nullable|integer|min:0',
         ]);
 
     }
@@ -101,6 +101,7 @@ class PromoCodeController extends Controller
                 $this->typeOfFields,
                 [
                     'textFields' => $this->textFields,
+                    'numericFields' => $this->numericFields,
                 ]
             );
 
@@ -150,6 +151,7 @@ class PromoCodeController extends Controller
                 $this->typeOfFields,
                 [
                     'textFields' => $this->textFields,
+                    'numericFields' => $this->numericFields,
                 ]
             );
 
@@ -158,7 +160,7 @@ class PromoCodeController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Category updated successfully.',
+                'message' => 'data updated successfully.',
                 'data' => $data,
             ], Response::HTTP_OK);
         } catch (\Exception $e) {

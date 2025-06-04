@@ -14,6 +14,7 @@ class PromoCode extends Model
         'type',
         'status',
         'usage_limit',
+        'amount'
 
     ];
 }
