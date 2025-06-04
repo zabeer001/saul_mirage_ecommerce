@@ -17,10 +17,11 @@ return new class extends Migration {
             $table->text('description')->nullable(); // Text field
             $table->string('image')->nullable(); // Image field as string path
             $table->decimal('price', 10, 2); // Numeric field
-
             $table->unsignedBigInteger('category_id'); // Numeric field (and likely a foreign key)
             $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
-
+            $table->string('status'); // Text field
+            $table->string('cost_price'); // Text field
+            $table->integer('stock_quantity'); // Text field
             $table->timestamps();
         });
     }

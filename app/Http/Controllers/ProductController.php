@@ -6,6 +6,7 @@ use App\Models\Media;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Helpers\HelperMethods;
+use PhpParser\Node\NullableType;
 use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends Controller
@@ -21,13 +22,14 @@ class ProductController extends Controller
     protected array $textFields = [
         'name',
         'description',
-        'price',
+        'stock_quantity',
+        'status'
     ];
 
     protected $imageFields = ['image'];
 
 
-    protected $numericFields = ['price', 'category_id'];
+    protected $numericFields = ['price', 'category_id', 'cost_price','stock_quantity'];
 
     /**
      * Validate the request data for Product creation or update.
@@ -35,18 +37,21 @@ class ProductController extends Controller
      * @param Request $request
      * @return array
      */
-    protected function validateRequest(Request $request)
-    {
-        return $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'image' => 'nullable|max:2048',
-            'images' => 'nullable|array',
-            'images.*' => 'nullable|max:2048',
-            'price' => 'required|integer|min:0',
-            'category_id' => 'nullable|exists:categories,id',
-        ]);
-    }
+  protected function validateRequest(Request $request)
+{
+    return $request->validate([
+        'name' => 'required|string|max:255',
+        'status' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'image' => 'nullable|max:2048', // probably should add 'image' rule if it's an image file
+        'images' => 'nullable|array',
+        'images.*' => 'nullable|max:2048', // also consider adding 'image' here if these are files
+        'price' => 'required|integer|min:0',
+        'cost_price' => 'required|integer|min:0',
+        'stock_quantity' => 'nullable|integer',
+        'category_id' => 'nullable|exists:categories,id',
+    ]);
+}
 
     /**
      * Display a listing of the resource.
