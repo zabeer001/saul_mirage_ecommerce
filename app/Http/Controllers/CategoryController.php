@@ -14,13 +14,18 @@ class CategoryController extends Controller
         // Apply JWT authentication and admin middleware only to store, update, and destroy methods
         $this->middleware(['auth:api', 'admin'])->only(['store', 'update', 'destroy']);
     }
-    protected array $typeOfFields = ['textFields'];
+    protected array $typeOfFields = ['textFields', 'imageFields'];
 
     protected array $textFields = [
         'name',
         'description',
         'type',
     ];
+
+    protected array $imageFields = [
+        'image',
+    ];
+
 
     /**
      * Validate the request data for category creation or update.
@@ -31,7 +36,7 @@ class CategoryController extends Controller
     protected function validateRequest(Request $request)
     {
         return $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string',
             'type' => 'nullable|string',
             'description' => 'nullable|string',
         ]);
@@ -103,6 +108,7 @@ class CategoryController extends Controller
                 $this->typeOfFields,
                 [
                     'textFields' => $this->textFields,
+                    'imageFields' => $this->imageFields,
                 ]
             );
 
@@ -162,6 +168,7 @@ class CategoryController extends Controller
                 $this->typeOfFields,
                 [
                     'textFields' => $this->textFields,
+                    'imageFields' => $this->imageFields,
                 ]
             );
 
