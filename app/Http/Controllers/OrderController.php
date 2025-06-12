@@ -6,6 +6,7 @@ use App\Models\Media;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Helpers\HelperMethods;
+use App\Models\Order;
 use Symfony\Component\HttpFoundation\Response;
 
 class OrderController extends Controller
@@ -50,40 +51,15 @@ class OrderController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Request $request)
+    public function index()
     {
-        try {
-            $validated = $request->validate([
-                'paginate_count' => 'nullable|integer|min:1',
-                'search' => 'nullable|string|max:255',
-            ]);
+        // return 0;
+        $orders = Order::with('products')->get();
 
-            $search = $validated['search'] ?? null;
-            $paginate_count = $validated['paginate_count'] ?? 10;
-
-            $query = Product::with([
-                'media:id,product_id,file_path',
-                'category:id,name'
-            ]);
-
-            if ($search) {
-                $query->where('name', 'like', $search . '%');
-            }
-
-            $data = $query->paginate($paginate_count);
-
-            return response()->json([
-                'success' => true,
-                'data' => $data,
-                'current_page' => $data->currentPage(),
-                'total_pages' => $data->lastPage(),
-                'per_page' => $data->perPage(),
-                'total' => $data->total(),
-            ], Response::HTTP_OK);
-
-        } catch (\Exception $e) {
-            return HelperMethods::handleException($e, 'Failed to fetch data.');
-        }
+        return response()->json([
+            'success' => true,
+            'data' => $orders
+        ]);
     }
 
     /**

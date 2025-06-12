@@ -7,6 +7,7 @@ use App\Http\Controllers\PromoCodeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\OrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,7 +33,13 @@ Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:api')
 Route::apiResource('categories', CategoryController::class);
 Route::get('categories-by-type', [CategoryController::class, 'categoriesByType']);
 Route::apiResource('products', ProductController::class);
+Route::get('best-selling-products', [ProductController::class, 'bestSellingProducts']);
+
 Route::apiResource('promocodes', PromoCodeController::class);
+
+Route::apiResource('orders', OrderController::class);
+
+
 
 
 

@@ -18,7 +18,7 @@ class Product extends Model
             'cost_price',
             'stock_quantity',
             'status'
-        ]; // adjust fields as needed
+        ]; 
 
     public function category()
     {
@@ -28,5 +28,12 @@ class Product extends Model
     public function media()
     {
         return $this->hasMany(Media::class);
+    }
+
+    public function orders()
+    {
+        return $this->belongsToMany(Order::class, 'order_products')
+                    ->withPivot('quantity')
+                    ->withTimestamps();
     }
 }

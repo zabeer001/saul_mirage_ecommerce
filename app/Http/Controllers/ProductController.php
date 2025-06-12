@@ -249,4 +249,16 @@ class ProductController extends Controller
             return HelperMethods::handleException($e, 'Failed to delete data.');
         }
     }
+
+    public function bestSellingProducts()
+    {
+        $products = Product::withCount('orders')
+            ->orderByDesc('orders_count')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $products
+        ]);
+    }
 }
