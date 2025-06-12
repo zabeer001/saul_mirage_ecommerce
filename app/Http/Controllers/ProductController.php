@@ -233,6 +233,20 @@ class ProductController extends Controller
         }
     }
 
+    public function show($id)
+    {
+        try {
+            $data = Product::with('category')->find($id);
+              return response()->json([
+                'success' => true,
+                'message' => 'Data retrived successfully.',
+                'data' => $data,
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return HelperMethods::handleException($e, 'Failed to update data.');
+        }
+    }
+
 
     public function destroy($id)
     {

@@ -14,7 +14,7 @@ class OrderController extends Controller
     public function __construct()
     {
         // Apply JWT authentication and admin middleware only to store, update, and destroy methods
-        $this->middleware(['auth:api', 'admin'])->only(['store', 'update', 'destroy']);
+        $this->middleware(['auth:api', 'admin'])->only(['store', 'update', 'destroy', 'index']);
     }
 
 
@@ -51,15 +51,50 @@ class OrderController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index()
+    public function index(Request $request)
     {
         // return 0;
-        $orders = Order::with('products')->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $orders
-        ]);
+        try {
+            $validated = $request->validate([
+                'paginate_count' => 'nullable|integer|min:1',
+                'search' => 'nullable|string|max:255',
+            ]);
+
+
+            // return 0;
+            $orders = Order::with('products')->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $orders
+            ]);
+
+
+            $search = $validated['search'] ?? null;
+            $paginate_count = $validated['paginate_count'] ?? 10;
+
+            $query = Order::with([
+                'products:id,name,file_path',
+            ]);
+
+            if ($search) {
+                $query->where('name', 'like', $search . '%');
+            }
+
+            $data = $query->paginate($paginate_count);
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'current_page' => $data->currentPage(),
+                'total_pages' => $data->lastPage(),
+                'per_page' => $data->perPage(),
+                'total' => $data->total(),
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return HelperMethods::handleException($e, 'Failed to fetch data.');
+        }
     }
 
     /**
@@ -201,11 +236,27 @@ class OrderController extends Controller
         }
     }
 
+    public function show($id)
+    {
+        try {
+
+            $data = Order::with('products')->find($id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data retrived successfully.',
+                'data' => $data,
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return HelperMethods::handleException($e, 'Failed to update data.');
+        }
+    }
+
 
     public function destroy($id)
     {
         try {
-                $data = Order::findOrFail($id);
+            $data = Order::findOrFail($id);
 
             // Attempt to delete the category
             $data->delete();

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Helpers\HelperMethods;
 use Illuminate\Database\Seeder;
 use App\Models\Order;
 use App\Models\Product;
@@ -23,6 +24,7 @@ class OrderSeeder extends Seeder
 
         for ($i = 1; $i <= 5; $i++) {
             $order = Order::create([
+                'uniq_id'         => HelperMethods::generateUniqueId(),
                 'full_name'       => "Customer {$i}",
                 'last_name'       => "Smith",
                 'email'           => "customer{$i}@example.com",
