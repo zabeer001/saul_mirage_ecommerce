@@ -1,0 +1,246 @@
+<?php
+global $wpdb;
+
+// Get current user ID
+$current_user_id = get_current_user_id();
+
+// Define pagination variables
+$per_page = 10;
+$current_page = max(1, get_query_var('paged') ? get_query_var('paged') : (isset($_GET['paged']) ? (int) $_GET['paged'] : 1));
+$offset = ($current_page - 1) * $per_page;
+
+// Get total number of orders for the current user where status is 'completed'
+if ($status) {
+    $total_orders = $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}marium_orders WHERE user_id = %d AND status = %s",
+            $current_user_id,
+            $status
+        )
+    );
+} else {
+    $total_orders = $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}marium_orders WHERE user_id = %d",
+            $current_user_id,
+
+        )
+    );
+}
+
+
+// Calculate total pages
+$total_pages = ceil($total_orders / $per_page);
+?>
+
+
+<br> <br>
+
+
+
+<style>
+    .pagination ul {
+        display: flex;
+        list-style: none;
+        padding: 0;
+        gap: 4px;
+    }
+
+    .pagination li a,
+    .pagination li span {
+        display: block;
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        text-decoration: none;
+    }
+
+    .pagination li a:hover {
+        background: #f1f1f1;
+    }
+
+    .pagination .current {
+        background: #65bccd;
+        color: white;
+        border-color: #65bccd;
+    }
+
+    .outfit-mir-magi {
+        font-family: 'Outfit', sans-serif;
+
+    }
+
+    button:focus,
+    a:focus {
+        outline: none;
+        box-shadow: none;
+        background-color: #008fab;
+        color: #fff;
+    }
+
+    #outfit-mir-magi-on {
+        font-family: 'Outfit', sans-serif;
+    }
+
+    .labels {
+        font-family: "Outfit", sans-serif;
+        font-weight: 400;
+        color: #232323B2;
+    }
+</style>
+
+
+<div>
+
+</div>
+
+<div class="flex flex-wrap gap-16 pl-2 mb-16 lg:-mt-24 xl:max-w-[1400px] max-w-[1100px] mx-auto outfit">
+    <div class="shadow-lg shadow-gray-300 xl:p-[24px] p-5 rounded-lg xl:h-[400px] xl:w-[280.33px] w-full">
+        <h1 class="!text-[#008FAB] !text-[18px] !font-semibold !mb-14 outfit">Orders</h1>
+        <div class="flex flex-col gap-3 !justify-start">
+            <div class="">
+                <button
+                    class="xl:!w-[235.33px] w-full !cursor-pointer hover:bg-[#008fab] hover:!text-white !text-gray-800 focus:!text-white  !text-start !px-[16px] !py-[8px] !rounded-none !shadow-none">
+                    <i class="fa-solid fa-calendar-days"></i> Order History
+                </button>
+            </div>
+            <a href="<?php echo esc_url(home_url('/order-step-1')); ?>" class="!no-underline">
+                <button
+                    class="xl:!w-[235.33px] w-full !cursor-pointer hover:bg-[#008fab] hover:!text-white !text-gray-800 focus:!text-white !text-start !px-[16px] !py-[8px] !rounded-none !shadow-none">
+                    <i class="fa-solid fa-plus"></i> New Order
+                </button>
+            </a>
+        </div>
+
+    </div>
+
+
+    <!-- Your existing HTML/PHP code for displaying orders -->
+    <div>
+        <div class="mb-10">
+            <h1>Order History</h1>
+            <div class="flex gap-10">
+                <a href="<?php echo home_url('/order-history'); ?>"
+                    class="text-[20px] font-semibold !no-underline <?php echo (get_query_var('pagename') === 'order-history') ? 'text-[#008FAB]' : 'text-black'; ?> outfit">
+                    View All
+                </a>
+                <a href="<?php echo home_url('/completed-order'); ?>"
+                    class="text-[20px] font-semibold !no-underline<?php echo (get_query_var('pagename') === 'completed-order') ? ' !text-[#008FAB]' : ' text-black'; ?> outfit">Completed
+                    Orders</a>
+            </div>
+        </div>
+
+        <?php foreach ($orders as $order) { ?>
+        <div class=" md:w-[900px] bg-gray-50 rounded-lg overflow-hidden shadow">
+            <!-- Header -->
+            <div class="flex  flex-wrap md:flex-nowrap justify-between items-center p-5 border-b bg-[#F5F5F5]">
+                <div class="w-1/2 md:w-auto mb-2 md:mb-0">
+                    <div class="font-medium">Order N.</div>
+                    <div class="text-gray-600">
+                        <?php echo $order->id; ?>
+                    </div>
+                </div>
+                <div class="w-1/2 md:w-auto mb-2 md:mb-0">
+                    <div class="font-medium">Placed</div>
+                    <div class="text-gray-600">
+                        <?php echo $order->created_at; ?>
+                    </div>
+                </div>
+                <div class="w-1/2 md:w-auto mb-2 md:mb-0">
+                    <div class="font-medium">Total</div>
+                    <div class="text-gray-600">€
+                        <?php echo $order->total; ?>
+                    </div>
+                </div>
+                <div class="w-1/2 md:w-auto mb-2 md:mb-0">
+                    <div class="font-medium">Status</div>
+                    <div class="text-gray-600">
+                        <?php echo $order->status; ?>
+                    </div>
+                </div>
+                <div class="w-full md:w-auto text-right">
+                    <button class="p-2 rounded-full hover:bg-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="h-5 w-5">
+                            <circle cx="12" cy="12" r="1"></circle>
+                            <circle cx="12" cy="5" r="1"></circle>
+                            <circle cx="12" cy="19" r="1"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Operations Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2">
+                <?php
+                    // Get operations for this order
+                    $order_id = $order->id;
+                    global $wpdb;
+
+                    $operations = $wpdb->get_results(
+                        $wpdb->prepare(
+                            "SELECT * FROM {$wpdb->prefix}marium_orperations WHERE order_id = %d",
+                            $order_id
+                        )
+                    );
+
+                    foreach ($operations as $operation) {
+                        ?>
+                <!-- Operation Item -->
+                <div class="p-5 border-b border-r">
+                    <h3 class="font-medium text-lg mb-3 !text-[#3C3C3C]">
+                        <?php echo $operation->work_type; ?>
+                    </h3>
+                    <div class="space-y-1 text-sm text-gray-600 mb-4">
+                        <div>Position: <span class="font-bold">
+                                <?php echo $operation->position; ?>
+                            </span></div>
+                        <div>Customer user_id: <span class="font-bold">
+                                <?php echo $order->user_id; ?>
+                            </span></div>
+                        <div>
+                            <h1 class="!text-[16px] !font-normal">Work Category: <span class="font-bold text-[#3C3C3C]">
+                                    <?php echo $operation->work_type; ?>
+                                </span>
+                            </h1>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <a href="<?php echo esc_url(add_query_arg('id', (int) $operation->id, home_url('/operation/'))); ?>"
+                            class="px-4 !no-underline py-2 bg-[#65bccd] hover:bg-[#4ea5b7] text-white hover:!text-white !p-3 font-semibold transition-colors outfit">
+                            View Details (ID:
+                            <?php echo esc_html($operation->id); ?>)
+                        </a>
+                        <div class="text-sm">
+                            <span class="text-gray-600">Sub Total:</span> <span class="font-medium">€
+                                <?php echo $order->total; ?>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <?php } ?>
+            </div>
+        </div>
+        <br><br>
+        <?php } ?>
+        <?php if ($total_pages > 1): ?>
+        <div class="pagination my-8 flex justify-center ">
+            <?php
+                echo paginate_links(array(
+                    'base' => add_query_arg('paged', '%#%'),
+                    'format' => '',
+                    'prev_text' => __('« Previous'),
+                    'next_text' => __('Next »'),
+                    'total' => $total_pages,
+                    'current' => $current_page,
+                    'type' => 'list'
+                ));
+                ?>
+        </div>
+
+    </div>
+
+    <?php endif; ?>
+</div>
+
+<!-- Pagination Links -->

@@ -136,11 +136,12 @@ class PromoCodeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, PromoCode $data)
+    public function update(Request $request, $id)
     {
         try {
             // Validate request
             $validated = $this->validateRequest($request);
+            $data = PromoCode::find($id);
 
 
             // Populate model fields using helper method
