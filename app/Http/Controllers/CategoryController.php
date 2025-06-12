@@ -12,7 +12,7 @@ class CategoryController extends Controller
     public function __construct()
     {
         // Apply JWT authentication and admin middleware only to store, update, and destroy methods
-        $this->middleware(['auth:api', 'admin'])->only(['store', 'update', 'destroy']);
+        $this->middleware(['auth:api', 'admin'])->only(['store', 'update']);
     }
     protected array $typeOfFields = ['textFields', 'imageFields'];
 
@@ -191,11 +191,12 @@ class CategoryController extends Controller
      * @param Category $category
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(Category $category)
+    public function destroy($id)
     {
         try {
             // Attempt to delete the category
-            $category->delete();
+            $data = Category::findOrFail($id);
+            $data->delete();
 
             return response()->json([
                 'success' => true,

@@ -226,9 +226,11 @@ class OrderController extends Controller
     }
 
 
-    public function destroy(Product $data)
+    public function destroy($id)
     {
         try {
+                $data = Order::findOrFail($id);
+
             // Attempt to delete the category
             $data->delete();
 

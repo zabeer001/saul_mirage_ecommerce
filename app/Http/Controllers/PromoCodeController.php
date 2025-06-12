@@ -171,9 +171,11 @@ class PromoCodeController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(PromoCode $promoCode)
+    public function destroy($id)
     {
         try {
+             $promoCode = PromoCode::findOrFail($id);
+
             // Attempt to delete the category
             $promoCode->delete();
 

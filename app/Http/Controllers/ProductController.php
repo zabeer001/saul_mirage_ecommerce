@@ -29,7 +29,7 @@ class ProductController extends Controller
     protected $imageFields = ['image'];
 
 
-    protected $numericFields = ['price', 'category_id', 'cost_price','stock_quantity'];
+    protected $numericFields = ['price', 'category_id', 'cost_price', 'stock_quantity'];
 
     /**
      * Validate the request data for Product creation or update.
@@ -37,21 +37,21 @@ class ProductController extends Controller
      * @param Request $request
      * @return array
      */
-  protected function validateRequest(Request $request)
-{
-    return $request->validate([
-        'name' => 'required|string|max:255',
-        'status' => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'image' => 'nullable|max:2048', // probably should add 'image' rule if it's an image file
-        'images' => 'nullable|array',
-        'images.*' => 'nullable|max:2048', // also consider adding 'image' here if these are files
-        'price' => 'required|integer|min:0',
-        'cost_price' => 'required|integer|min:0',
-        'stock_quantity' => 'nullable|integer',
-        'category_id' => 'nullable|exists:categories,id',
-    ]);
-}
+    protected function validateRequest(Request $request)
+    {
+        return $request->validate([
+            'name' => 'required|string|max:255',
+            'status' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'image' => 'nullable|max:2048', // probably should add 'image' rule if it's an image file
+            'images' => 'nullable|array',
+            'images.*' => 'nullable|max:2048', // also consider adding 'image' here if these are files
+            'price' => 'required|integer|min:0',
+            'cost_price' => 'required|integer|min:0',
+            'stock_quantity' => 'nullable|integer',
+            'category_id' => 'nullable|exists:categories,id',
+        ]);
+    }
 
     /**
      * Display a listing of the resource.
@@ -89,7 +89,6 @@ class ProductController extends Controller
                 'per_page' => $data->perPage(),
                 'total' => $data->total(),
             ], Response::HTTP_OK);
-
         } catch (\Exception $e) {
             return HelperMethods::handleException($e, 'Failed to fetch data.');
         }
@@ -235,10 +234,11 @@ class ProductController extends Controller
     }
 
 
-    public function destroy(Product $data)
+    public function destroy($id)
     {
         try {
             // Attempt to delete the category
+            $data = Product::findOrFail($id);
             $data->delete();
 
             return response()->json([
