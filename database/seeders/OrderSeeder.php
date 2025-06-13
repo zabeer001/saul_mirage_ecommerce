@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\PromoCode;
+use Carbon\Carbon;
 
 class OrderSeeder extends Seeder
 {
@@ -25,7 +26,13 @@ class OrderSeeder extends Seeder
             return;
         }
 
-        for ($i = 1; $i <= 5; $i++) { // create multiple orders, adjust as needed
+        $start = Carbon::now()->subMonths(6);
+        $end = Carbon::now();
+
+        for ($i = 1; $i <= 1000; $i++) { // create multiple orders, adjust as needed
+            // Generate random date for each order
+            $randomDate = Carbon::createFromTimestamp(rand($start->timestamp, $end->timestamp));
+
             $selectedPromo = $promoCodes->random();
 
             $order = Order::create([
@@ -42,13 +49,15 @@ class OrderSeeder extends Seeder
                 'type'            => 'online',
                 'status'          => 'pending',
                 'shipping_method' => 'standard',
-                'items'           =>  rand(1, 5),
+                'items'           => rand(1, 5),
                 'shipping_price'  => 50.00,
                 'order_summary'   => 'Subtotal: $100.00 | Tax: $15.00 | Total: $165.00',
                 'payment_method'  => 'cash_on_delivery',
                 'payment_status'  => 'unpaid',
                 'promocode_id'    => $selectedPromo->id,
-                'total'     => 165.00,
+                'total'           => 165.00,
+                'created_at'      => $randomDate,
+                'updated_at'      => $randomDate,
             ]);
 
             // Prepare sync data: product_id => ['quantity' => X]

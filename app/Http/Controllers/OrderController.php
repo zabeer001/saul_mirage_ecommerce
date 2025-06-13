@@ -14,7 +14,7 @@ class OrderController extends Controller
     public function __construct()
     {
         // Apply JWT authentication and admin middleware only to store, update, and destroy methods
-        $this->middleware(['auth:api', 'admin'])->only(['store', 'update', 'destroy', 'index']);
+        $this->middleware(['auth:api', 'admin'])->only(['store', 'update', 'destroy', 'index','last_six_months_stats']);
     }
 
 
@@ -260,5 +260,9 @@ class OrderController extends Controller
         } catch (\Exception $e) {
             return HelperMethods::handleException($e, 'Failed to delete data.');
         }
+    }
+    public function last_six_months_stats()
+    {
+return 9;
     }
 }
