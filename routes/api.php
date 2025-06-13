@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrderController;
+use App\Models\NewsLetter;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,6 +39,8 @@ Route::get('best-selling-products', [ProductController::class, 'bestSellingProdu
 Route::apiResource('promocodes', PromoCodeController::class);
 
 Route::apiResource('orders', OrderController::class);
+
+Route::apiResource('newsletter', NewsLetter::class);
 
 
 

@@ -131,8 +131,6 @@ class ProductController extends Controller
             );
             $data->save();
 
-            $data->save();
-
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $image) {
                     $newImagePath = HelperMethods::uploadImage($image); // handles upload and returns path
