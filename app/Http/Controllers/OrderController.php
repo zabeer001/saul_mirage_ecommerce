@@ -15,7 +15,7 @@ class OrderController extends Controller
     public function __construct()
     {
         // Apply JWT authentication and admin middleware only to store, update, and destroy methods
-        $this->middleware(['auth:api', 'admin'])->only(['store', 'update', 'destroy', 'index','last_six_months_stats']);
+        $this->middleware(['auth:api', 'admin'])->only(['store', 'update', 'destroy', 'index', 'last_six_months_stats']);
     }
 
 
@@ -156,9 +156,9 @@ class OrderController extends Controller
             );
             $data->save();
 
-   
 
-      
+
+
             return response()->json([
                 'success' => true,
                 'message' => 'data created successfully.',
@@ -214,7 +214,7 @@ class OrderController extends Controller
             // Save updated model
             $data->save();
 
-          
+
 
             return response()->json([
                 'success' => true,
@@ -262,22 +262,22 @@ class OrderController extends Controller
             return HelperMethods::handleException($e, 'Failed to delete data.');
         }
     }
+
+
    public function last_six_months_stats()
 {
     $data = [];
 
-    // Start from current month and go back 5 more months
     for ($i = 0; $i < 6; $i++) {
         $start = Carbon::now()->subMonths($i)->startOfMonth();
         $end = Carbon::now()->subMonths($i)->endOfMonth();
 
-        $count = Order::whereBetween('created_at', [$start, $end])->count();
+        $sum = Order::whereBetween('created_at', [$start, $end])->sum('total');
 
-        // Optional: Use month name as key
-        $data[$start->format('F')] = $count;
+        $data[$start->format('F')] = (float) $sum;  // cast to float here
     }
 
-    // Reverse so it starts from oldest month to current
     return array_reverse($data);
 }
+
 }
