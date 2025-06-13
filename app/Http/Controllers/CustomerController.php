@@ -23,10 +23,7 @@ class CustomerController extends Controller
             $search = $validated['search'] ?? null;
             $paginate_count = $validated['paginate_count'] ?? 10;
 
-            $query = Customer::with([
-                'media:id,product_id,file_path',
-                'category:id,name'
-            ]);
+            $query = Customer::query();
 
             if ($search) {
                 $query->where('name', 'like', $search . '%');
