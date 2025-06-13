@@ -30,6 +30,9 @@ return new class extends Migration
             $table->longText('order_summary')->nullable(); // assuming it's a structured summary
             $table->string('payment_method')->nullable();
             $table->string('payment_status')->default('unpaid');
+           $table->unsignedBigInteger('promocode_id')->nullable(); // Must be nullable for onDelete('set null')
+            $table->foreign('promocode_id')->references('id')->on('promo_codes')->onDelete('set null');
+            $table->decimal('total');
             $table->timestamps();
         });
     }

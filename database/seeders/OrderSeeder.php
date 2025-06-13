@@ -6,23 +6,28 @@ use App\Helpers\HelperMethods;
 use Illuminate\Database\Seeder;
 use App\Models\Order;
 use App\Models\Product;
-use Illuminate\Support\Str;
+use App\Models\PromoCode;
 
 class OrderSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $products = Product::all(); // all 3 products
+        $products = Product::all();
+        $promoCodes = PromoCode::all();
 
         if ($products->isEmpty()) {
             $this->command->warn('No products found. Please seed the products table first.');
             return;
         }
 
-        for ($i = 1; $i <= 5; $i++) {
+        if ($promoCodes->isEmpty()) {
+            $this->command->warn('No promo codes found. Please seed the promocodes table first.');
+            return;
+        }
+
+        for ($i = 1; $i <= 5; $i++) { // create multiple orders, adjust as needed
+            $selectedPromo = $promoCodes->random();
+
             $order = Order::create([
                 'uniq_id'         => HelperMethods::generateUniqueId(),
                 'full_name'       => "Customer {$i}",
@@ -38,9 +43,11 @@ class OrderSeeder extends Seeder
                 'status'          => 'pending',
                 'shipping_method' => 'standard',
                 'shipping_price'  => 50.00,
-                'order_summary' => 'Subtotal: $100.00 | Tax: $15.00 | Total: $165.00',
+                'order_summary'   => 'Subtotal: $100.00 | Tax: $15.00 | Total: $165.00',
                 'payment_method'  => 'cash_on_delivery',
                 'payment_status'  => 'unpaid',
+                'promocode_id'    => $selectedPromo->id,
+                'total'     => 165.00,
             ]);
 
             // Prepare sync data: product_id => ['quantity' => X]
@@ -51,7 +58,6 @@ class OrderSeeder extends Seeder
                 $syncData[$product->id] = ['quantity' => rand(1, 5)];
             }
 
-            // Sync instead of attach
             $order->products()->sync($syncData);
         }
     }

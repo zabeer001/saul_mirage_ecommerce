@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             CategorySeeder::class,
             ProductSeeder::class,
+            PromocodeSeeder::class,
             OrderSeeder::class,
             NewsLetterSeeder::class,
             ReviewSeeder::class,

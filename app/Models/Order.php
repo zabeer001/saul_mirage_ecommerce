@@ -28,6 +28,8 @@ class Order extends Model
         'order_summary',
         'payment_method',
         'payment_status',
+        'promocode_id',
+        'total',
     ];
 
 
@@ -37,4 +39,9 @@ class Order extends Model
             ->withPivot('quantity')
             ->withTimestamps();
     }
+
+    public function promocode()
+{
+    return $this->belongsTo(PromoCode::class);
+}
 }

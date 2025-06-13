@@ -19,12 +19,11 @@ class ReviewController extends Controller
     protected array $typeOfFields = ['textFields', 'numericFields'];
 
     protected array $textFields = [
-        'user_id',
         'comment',
     ];
 
 
-    protected $numericFields = ['product_id', 'rating'];
+    protected $numericFields = ['user_id', 'product_id', 'rating'];
     /**
      * Display a listing of the resource.
      */
@@ -38,7 +37,7 @@ class ReviewController extends Controller
             $paginate_count = $validated['paginate_count'] ?? 10;
 
             $query = Review::with(['user', 'product']);
-            
+
             $data = $query->paginate($paginate_count);
 
             return response()->json([
@@ -68,7 +67,32 @@ class ReviewController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $validated = $this->validateRequest($request);
+
+            $data = new Review();
+
+            HelperMethods::populateModelFields(
+                $data,
+                $request,
+                $validated,
+                $this->typeOfFields,
+                [
+                    'textFields' => $this->textFields,
+                    'numericFields' => $this->numericFields,
+                ]
+            );
+
+            $data->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Category created successfully.',
+                'data' => $data,
+            ], Response::HTTP_CREATED);
+        } catch (\Exception $e) {
+            return HelperMethods::handleException($e, 'Failed to create category.');
+        }
     }
 
     /**

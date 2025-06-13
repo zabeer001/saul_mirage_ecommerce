@@ -55,7 +55,7 @@ class PromoCodeController extends Controller
             $search = $validated['search'] ?? null;
             $paginate_count = $validated['paginate_count'] ?? 10;
 
-            $query = PromoCode::query();
+           $query = PromoCode::withCount('orders');
 
             if ($search) {
                 $query->where('name', 'like', $search . '%');

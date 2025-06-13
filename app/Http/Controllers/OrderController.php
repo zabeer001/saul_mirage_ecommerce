@@ -63,7 +63,7 @@ class OrderController extends Controller
 
 
             // return 0;
-            $orders = Order::with('products')->get();
+            $orders = Order::with('products');
 
             return response()->json([
                 'success' => true,
@@ -128,7 +128,6 @@ class OrderController extends Controller
                 $this->typeOfFields,
                 [
                     'numericFields' => $this->numericFields,
-                    'imageFields' => $this->imageFields,
                     'textFields' => $this->textFields,
                 ]
             );
@@ -196,7 +195,6 @@ class OrderController extends Controller
                 $this->typeOfFields,
                 [
                     'numericFields' => $this->numericFields,
-                    'imageFields' => $this->imageFields,
                     'textFields' => $this->textFields,
                 ]
             );
