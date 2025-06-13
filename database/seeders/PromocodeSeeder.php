@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\PromoCode;
 use Illuminate\Database\Seeder;
 
 
@@ -37,7 +38,7 @@ class PromocodeSeeder extends Seeder
         ];
 
         foreach ($promocodes as $code) {
-            Promocode::create($code);
+            PromoCode::create($code);
         }
     }
 }
