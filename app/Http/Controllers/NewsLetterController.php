@@ -130,10 +130,10 @@ class NewsLetterController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-     public function destroy($id)
+    public function destroy($id)
     {
         try {
-             $data = NewsLetter::findOrFail($id);
+            $data = NewsLetter::findOrFail($id);
 
             // Attempt to delete the category
             $data->delete();

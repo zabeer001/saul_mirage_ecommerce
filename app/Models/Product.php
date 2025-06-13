@@ -36,4 +36,9 @@ class Product extends Model
                     ->withPivot('quantity')
                     ->withTimestamps();
     }
+
+    public function rating_n_reviews()
+    {
+        return $this->hasMany(RatingnReviews::class);
+    }
 }
