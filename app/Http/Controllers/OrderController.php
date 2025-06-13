@@ -62,21 +62,16 @@ class OrderController extends Controller
             ]);
 
 
-            // return 0;
-            $orders = Order::with('products');
 
-            return response()->json([
-                'success' => true,
-                'data' => $orders
-            ]);
+
+
 
 
             $search = $validated['search'] ?? null;
             $paginate_count = $validated['paginate_count'] ?? 10;
 
-            $query = Order::with([
-                'products:id,name,file_path',
-            ]);
+            $query = Order::with(['promocode:id,name']);
+
 
             if ($search) {
                 $query->where('name', 'like', $search . '%');
@@ -238,7 +233,10 @@ class OrderController extends Controller
     {
         try {
 
-            $data = Order::with('products')->find($id);
+            $data = Order::with([
+                'products',
+                'promocode:id,name' // assuming you want only the id and name columns from promocode
+            ])->find($id);
 
             return response()->json([
                 'success' => true,
