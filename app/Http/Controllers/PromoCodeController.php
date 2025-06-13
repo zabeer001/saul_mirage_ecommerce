@@ -47,11 +47,12 @@ class PromoCodeController extends Controller
     public function index(Request $request)
     {
         try {
+            
             $validated = $request->validate([
                 'paginate_count' => 'nullable|integer|min:1',
                 'search' => 'nullable|string|max:255',
             ]);
-
+// return 'ok';
             $search = $validated['search'] ?? null;
             $paginate_count = $validated['paginate_count'] ?? 10;
 

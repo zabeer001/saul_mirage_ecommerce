@@ -41,8 +41,8 @@ class Order extends Model
             ->withTimestamps();
     }
 
-    public function promocode()
-{
-    return $this->belongsTo(PromoCode::class);
-}
+   public function promocode()
+    {
+        return $this->belongsTo(PromoCode::class, 'promocode_id', 'id');
+    }
 }
