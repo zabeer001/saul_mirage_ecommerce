@@ -14,15 +14,8 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->string('uniq_id');
-            $table->string('full_name');
-            $table->string('last_name');
-            $table->string('email');
-            $table->string('phone');
-            $table->string('full_address');
-            $table->string('city');
-            $table->string('state');
-            $table->string('postal_code');
-            $table->string('country');
+            $table->unsignedBigInteger('customer_id')->nullable(); // Must be nullable for onDelete('set null')
+            $table->foreign('customer_id')->references('id')->on('customers')->onDelete('set null');
             $table->string('type')->nullable();
             $table->integer('items')->default(1);
             $table->string('status')->default('pending');
@@ -34,7 +27,6 @@ return new class extends Migration
             $table->unsignedBigInteger('promocode_id')->nullable(); // Must be nullable for onDelete('set null')
             $table->foreign('promocode_id')->references('id')->on('promo_codes')->onDelete('set null');
             $table->decimal('total');
-
             $table->timestamps();
         });
     }

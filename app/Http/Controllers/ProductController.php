@@ -235,7 +235,7 @@ class ProductController extends Controller
     {
         try {
             $data = Product::with('category')->find($id);
-              return response()->json([
+            return response()->json([
                 'success' => true,
                 'message' => 'Data retrived successfully.',
                 'data' => $data,
@@ -262,15 +262,40 @@ class ProductController extends Controller
         }
     }
 
-    public function bestSellingProducts()
+    public function bestSellingProducts(Request $request)
     {
-        $products = Product::withCount('orders')
-            ->orderByDesc('orders_count')
-            ->get();
+        try {
+            $validated = $request->validate([
+                'paginate_count' => 'nullable|integer|min:1',
+                'search' => 'nullable|string|max:255',
+            ]);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $products
-        ]);
+            $search = $validated['search'] ?? null;
+            $paginate_count = $validated['paginate_count'] ?? 10;
+
+            $query = Product::withCount('orders')
+                ->with([
+                    
+                    'category:id,name'
+                ])
+                ->orderByDesc('orders_count');
+
+            if ($search) {
+                $query->where('name', 'like', $search . '%');
+            }
+
+            $data = $query->paginate($paginate_count);
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'current_page' => $data->currentPage(),
+                'total_pages' => $data->lastPage(),
+                'per_page' => $data->perPage(),
+                'total' => $data->total(),
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return HelperMethods::handleException($e, 'Failed to fetch best-selling products.');
+        }
     }
 }

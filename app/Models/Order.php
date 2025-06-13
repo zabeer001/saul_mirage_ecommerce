@@ -10,15 +10,7 @@ class Order extends Model
     use HasFactory;
     protected $fillable = [
         'uniq_id',
-        'full_name',
-        'last_name',
-        'email',
-        'phone',
-        'full_address',
-        'city',
-        'state',
-        'postal_code',
-        'country',
+        'customer_id',
         'product_id',
         'description',
         'type',
@@ -41,7 +33,7 @@ class Order extends Model
             ->withTimestamps();
     }
 
-   public function promocode()
+    public function promocode()
     {
         return $this->belongsTo(PromoCode::class, 'promocode_id', 'id');
     }

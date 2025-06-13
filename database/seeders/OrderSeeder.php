@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Helpers\HelperMethods;
+use App\Models\Customer;
 use Illuminate\Database\Seeder;
 use App\Models\Order;
 use App\Models\Product;
@@ -35,8 +36,7 @@ class OrderSeeder extends Seeder
 
             $selectedPromo = $promoCodes->random();
 
-            $order = Order::create([
-                'uniq_id'         => HelperMethods::generateUniqueId(),
+            $customer = Customer::create([
                 'full_name'       => "Customer {$i}",
                 'last_name'       => "Smith",
                 'email'           => "customer{$i}@example.com",
@@ -46,6 +46,11 @@ class OrderSeeder extends Seeder
                 'state'           => "State {$i}",
                 'postal_code'     => "120{$i}",
                 'country'         => "Bangladesh",
+            ]);
+
+            $order = Order::create([
+                'uniq_id'         => HelperMethods::generateUniqueId(),
+                
                 'type'            => 'online',
                 'status'          => 'pending',
                 'shipping_method' => 'standard',

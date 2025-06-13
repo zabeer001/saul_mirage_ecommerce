@@ -6,6 +6,7 @@ use App\Models\Media;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Helpers\HelperMethods;
+use App\Models\Customer;
 use App\Models\Order;
 use Symfony\Component\HttpFoundation\Response;
 use Carbon\Carbon;
@@ -25,15 +26,6 @@ class OrderController extends Controller
 
     protected array $textFields = [
         'uniq_id',
-        'full_name',
-        'last_name',
-        'email',
-        'phone',
-        'full_address',
-        'city',
-        'state',
-        'postal_code',
-        'country',
         'type',
         'status',
         'shipping_method',
@@ -43,8 +35,22 @@ class OrderController extends Controller
 
     protected array $numericFields = [
         'items',
+        'customer_id',
         'total',
         'promocode_id',
+    ];
+
+    protected array $customerInfo = [
+
+        'full_name',
+        'last_name',
+        'email',
+        'phone',
+        'full_address',
+        'city',
+        'state',
+        'postal_code',
+        'country',
     ];
 
     protected function validateRequest(Request $request): array
@@ -138,14 +144,40 @@ class OrderController extends Controller
     {
 
         try {
+
             $validated = $this->validateRequest($request);
 
+            $customer = Customer::where('email', $validated['email'])->first();
+
+            if (!$customer) {
+                // Create new customer if not found
+                $customer = new Customer();
+                HelperMethods::populateModelFields(
+                    $customer,
+                    $request,
+                    $validated,
+                    ['textFields'],
+                    ['textFields' => $this->customerInfo]
+                );
+                $customer->save();
+            } else {
+                // Optionally update existing customer fields
+                HelperMethods::populateModelFields(
+                    $customer,
+                    $request,
+                    $validated,
+                    ['textFields'],
+                    ['textFields' => $this->customerInfo]
+                );
+                $customer->save();
+            }
 
 
 
-            $data = new Product();
+            $order = new Product();
+            $order->customer_id = $customer->id;
             HelperMethods::populateModelFields(
-                $data,
+                $order,
                 $request,
                 $validated,
                 $this->typeOfFields,
@@ -154,7 +186,7 @@ class OrderController extends Controller
                     'textFields' => $this->textFields,
                 ]
             );
-            $data->save();
+            $order->save();
 
 
 
@@ -162,7 +194,10 @@ class OrderController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'data created successfully.',
-                'data' => $data,
+                'data' => [
+                    'customer' => $customer,
+                    'order' => $order,
+                ],
             ], Response::HTTP_CREATED);
         } catch (\Exception $e) {
             return HelperMethods::handleException($e, 'Failed to create category.');
@@ -264,20 +299,19 @@ class OrderController extends Controller
     }
 
 
-   public function last_six_months_stats()
-{
-    $data = [];
+    public function last_six_months_stats()
+    {
+        $data = [];
 
-    for ($i = 0; $i < 6; $i++) {
-        $start = Carbon::now()->subMonths($i)->startOfMonth();
-        $end = Carbon::now()->subMonths($i)->endOfMonth();
+        for ($i = 0; $i < 6; $i++) {
+            $start = Carbon::now()->subMonths($i)->startOfMonth();
+            $end = Carbon::now()->subMonths($i)->endOfMonth();
 
-        $sum = Order::whereBetween('created_at', [$start, $end])->sum('total');
+            $sum = Order::whereBetween('created_at', [$start, $end])->sum('total');
 
-        $data[$start->format('F')] = (float) $sum;  // cast to float here
+            $data[$start->format('F')] = (float) $sum;  // cast to float here
+        }
+
+        return array_reverse($data);
     }
-
-    return array_reverse($data);
-}
-
 }

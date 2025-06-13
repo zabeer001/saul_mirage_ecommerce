@@ -7,6 +7,7 @@ use App\Http\Controllers\PromoCodeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\NewsLetterController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\RatingnReviewsController;
@@ -48,6 +49,8 @@ Route::get('order-stats', [OrderController::class, 'last_six_months_stats']);
 Route::apiResource('newsletter', NewsLetterController::class);
 
 Route::apiResource('reviews', ReviewController::class);
+
+Route::apiResource('customers', CustomerController::class);
 
 
 
