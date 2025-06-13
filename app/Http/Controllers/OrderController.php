@@ -18,30 +18,57 @@ class OrderController extends Controller
     }
 
 
+
+
     protected array $typeOfFields = ['textFields', 'numericFields'];
 
     protected array $textFields = [
-        'payment',
+        'uniq_id',
+        'full_name',
+        'last_name',
+        'email',
+        'phone',
+        'full_address',
+        'city',
+        'state',
+        'postal_code',
+        'country',
+        'type',
         'status',
+        'shipping_method',
+        'payment_method',
+        'payment_status',
     ];
 
-
-
     protected array $numericFields = [
-        // 'customer_id',
-        'user_id',
+        'items',
         'total',
         'promocode_id',
     ];
 
-    protected function validateOrderRequest(Request $request): array
+    protected function validateRequest(Request $request): array
     {
         return $request->validate([
-            'user_id' => 'nullable|exists:users,id',
-            'total' => 'required|numeric|min:0',
-            'payment' => 'required|string|max:255',
-            'status' => 'required|string|in:pending,processing,completed,cancelled',
-            'promocode_id' => 'nullable|exists:promocodes,id',
+            'uniq_id'         => 'required|string|max:255',
+            'full_name'       => 'required|string|max:255',
+            'last_name'       => 'required|string|max:255',
+            'email'           => 'required|email|max:255',
+            'phone'           => 'required|string|max:20',
+            'full_address'    => 'required|string|max:255',
+            'city'            => 'required|string|max:100',
+            'state'           => 'required|string|max:100',
+            'postal_code'     => 'required|string|max:20',
+            'country'         => 'required|string|max:100',
+            'type'            => 'nullable|string|max:100',
+            'items'           => 'nullable|integer|min:1',
+            'status'          => 'required|string|in:pending,processing,completed,cancelled',
+            'shipping_method' => 'nullable|string|max:100',
+            'shipping_price'  => 'nullable|numeric|min:0',
+            'order_summary'   => 'nullable|string', // or array/json if casted
+            'payment_method'  => 'nullable|string|max:100',
+            'payment_status'  => 'required|string|in:unpaid,paid',
+            'promocode_id'    => 'nullable|exists:promo_codes,id',
+            'total'           => 'required|numeric|min:0',
         ]);
     }
 
@@ -128,20 +155,9 @@ class OrderController extends Controller
             );
             $data->save();
 
-            $data->save();
+   
 
-            if ($request->hasFile('images')) {
-                foreach ($request->file('images') as $image) {
-                    $newImagePath = HelperMethods::uploadImage($image); // handles upload and returns path
-
-                    Media::create([
-                        'product_id' => $data->id,
-                        'file_path' => $newImagePath,
-
-                        // Add more fields if needed
-                    ]);
-                }
-            }
+      
             return response()->json([
                 'success' => true,
                 'message' => 'data created successfully.',
@@ -197,27 +213,7 @@ class OrderController extends Controller
             // Save updated model
             $data->save();
 
-            // Handle image uploads if present
-            if ($request->hasFile('images')) {
-                // Delete old images
-                $oldImages = Media::where('product_id', $data->id)->get();
-                foreach ($oldImages as $oldImage) {
-                    HelperMethods::deleteImage($oldImage->file_path); // Delete image file
-                    $oldImage->delete(); // Delete media record
-                }
-
-                // Upload new images
-                foreach ($request->file('images') as $image) {
-                    $newImagePath = HelperMethods::uploadImage($image); // Handles upload and returns path
-                    if ($newImagePath) {
-                        Media::create([
-                            'product_id' => $data->id,
-                            'file_path' => $newImagePath,
-                            // Add more fields if needed
-                        ]);
-                    }
-                }
-            }
+          
 
             return response()->json([
                 'success' => true,
