@@ -22,6 +22,7 @@ class Order extends Model
         'product_id',
         'description',
         'type',
+        'items',
         'status',
         'shipping_method',
         'shipping_price',

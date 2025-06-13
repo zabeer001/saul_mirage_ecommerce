@@ -42,6 +42,7 @@ class OrderSeeder extends Seeder
                 'type'            => 'online',
                 'status'          => 'pending',
                 'shipping_method' => 'standard',
+                'items'           =>  rand(1, 5),
                 'shipping_price'  => 50.00,
                 'order_summary'   => 'Subtotal: $100.00 | Tax: $15.00 | Total: $165.00',
                 'payment_method'  => 'cash_on_delivery',
