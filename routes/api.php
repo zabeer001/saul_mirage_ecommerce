@@ -7,6 +7,7 @@ use App\Http\Controllers\PromoCodeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\NewsLetterController;
 use App\Http\Controllers\OrderController;
 use App\Models\NewsLetter;
 
@@ -40,7 +41,7 @@ Route::apiResource('promocodes', PromoCodeController::class);
 
 Route::apiResource('orders', OrderController::class);
 
-Route::apiResource('newsletter', NewsLetter::class);
+Route::apiResource('newsletter', NewsLetterController::class);
 
 
 
