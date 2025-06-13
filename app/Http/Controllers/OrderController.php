@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Helpers\HelperMethods;
 use App\Models\Order;
 use Symfony\Component\HttpFoundation\Response;
+use Carbon\Carbon;
 
 class OrderController extends Controller
 {
@@ -261,8 +262,22 @@ class OrderController extends Controller
             return HelperMethods::handleException($e, 'Failed to delete data.');
         }
     }
-    public function last_six_months_stats()
-    {
-return 9;
+   public function last_six_months_stats()
+{
+    $data = [];
+
+    // Start from current month and go back 5 more months
+    for ($i = 0; $i < 6; $i++) {
+        $start = Carbon::now()->subMonths($i)->startOfMonth();
+        $end = Carbon::now()->subMonths($i)->endOfMonth();
+
+        $count = Order::whereBetween('created_at', [$start, $end])->count();
+
+        // Optional: Use month name as key
+        $data[$start->format('F')] = $count;
     }
+
+    // Reverse so it starts from oldest month to current
+    return array_reverse($data);
+}
 }

@@ -29,7 +29,7 @@ class OrderSeeder extends Seeder
         $start = Carbon::now()->subMonths(6);
         $end = Carbon::now();
 
-        for ($i = 1; $i <= 1000; $i++) { // create multiple orders, adjust as needed
+        for ($i = 1; $i <= 1000; $i++) { 
             // Generate random date for each order
             $randomDate = Carbon::createFromTimestamp(rand($start->timestamp, $end->timestamp));
 

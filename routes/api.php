@@ -43,6 +43,7 @@ Route::get('best-selling-products', [ProductController::class, 'bestSellingProdu
 Route::apiResource('promocodes', PromoCodeController::class);
 
 Route::apiResource('orders', OrderController::class);
+Route::get('order-stats', [OrderController::class, 'last_six_months_stats']);
 
 Route::apiResource('newsletter', NewsLetterController::class);
 
