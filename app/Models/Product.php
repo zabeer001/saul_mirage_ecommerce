@@ -37,8 +37,8 @@ class Product extends Model
                     ->withTimestamps();
     }
 
-    public function rating_n_reviews()
+    public function reviews()
     {
-        return $this->hasMany(RatingnReviews::class);
+        return $this->hasMany(Review::class);
     }
 }

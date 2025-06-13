@@ -10,6 +10,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NewsLetterController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\RatingnReviewsController;
+use App\Http\Controllers\ReviewController;
 use App\Models\NewsLetter;
 use App\Models\RatingnReviews;
 
@@ -45,7 +46,7 @@ Route::apiResource('orders', OrderController::class);
 
 Route::apiResource('newsletter', NewsLetterController::class);
 
-Route::apiResource('rating-n-reviews', RatingnReviewsController::class);
+Route::apiResource('reviews', ReviewController::class);
 
 
 
