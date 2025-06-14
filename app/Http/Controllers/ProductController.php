@@ -6,6 +6,7 @@ use App\Models\Media;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Helpers\HelperMethods;
+use App\Models\Order;
 use PhpParser\Node\NullableType;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -80,7 +81,7 @@ class ProductController extends Controller
             if ($search) {
                 $query->where('name', 'like', $search . '%');
             }
-            
+
             if ($status) {
                 $query->where('status', $status);
             }
@@ -98,6 +99,22 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             return HelperMethods::handleException($e, 'Failed to fetch data.');
         }
+    }
+
+
+    public function stats()
+    {
+        $totalProducts = Product::count();
+        $revenue = Order::sum('total');
+        $outOfStock = Product::where('stock', '<', 1)->count();
+        $lowStock = Product::where('stock', '<', 10)->count();
+        return response()->json([
+            'totalProducts' => $totalProducts,
+            'lowStock' => $lowStock,
+            'outOfStock' => $outOfStock,
+            'revenue' => $revenue,
+
+        ], Response::HTTP_OK);
     }
 
     /**

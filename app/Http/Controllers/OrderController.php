@@ -6,6 +6,7 @@ use App\Models\Media;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Helpers\HelperMethods;
+use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Order;
 use Symfony\Component\HttpFoundation\Response;
@@ -142,20 +143,21 @@ class OrderController extends Controller
         }
     }
 
-   public function stats()
+    public function stats()
     {
         $totalOrders = Order::count();
-  
         $processingOrders = Order::where('status', 'pending')->count();
         $pendingPayments =  Order::where('payment_status', 'unpaid')->count();
         $revenue = Order::sum('total');
+        $averageOrderValue = $revenue / $totalOrders;
+
+
         return response()->json([
             'totalOrders' => $totalOrders,
             'processing' => $processingOrders,
             'pendingPayments' => $pendingPayments,
             'revenue' => $revenue,
-
-
+            'averageOrderValue' => $averageOrderValue,
         ], Response::HTTP_OK);
     }
 
@@ -247,6 +249,7 @@ class OrderController extends Controller
 
                     // Reduce stock quantity
                     $productModel->stock_quantity -= $quantity;
+                    $productModel->sales += $quantity;
                     $productModel->save();
 
                     $syncData[$productId] = ['quantity' => $quantity];
@@ -375,17 +378,34 @@ class OrderController extends Controller
 
     public function last_six_months_stats()
     {
-        $data = [];
+        $monthlySales = [];
 
-        for ($i = 0; $i < 6; $i++) {
+        for ($i = 5; $i >= 0; $i--) {
             $start = Carbon::now()->subMonths($i)->startOfMonth();
             $end = Carbon::now()->subMonths($i)->endOfMonth();
 
             $sum = Order::whereBetween('created_at', [$start, $end])->sum('total');
 
-            $data[$start->format('F')] = (float) $sum;  // cast to float here
+            $monthlySales[] = [
+                'month' => $start->format('F'),
+                'sales' => (float) $sum,
+            ];
         }
 
-        return array_reverse($data);
+        $categoryWiseSales = Category::select('id', 'name')
+            ->withSum('products as total_sales', 'sales')
+            ->get()
+            ->map(function ($category) {
+                return [
+                    'category'     => $category->name,
+                    'total_sales'  => (float) ($category->total_sales ?? 0),
+                ];
+            });
+
+        return response()->json([
+            'status' => 'success',
+            'monthly_sales' => $monthlySales,
+            'category_wise_sales' => $categoryWiseSales,
+        ]);
     }
 }

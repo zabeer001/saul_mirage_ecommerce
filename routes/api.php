@@ -40,6 +40,8 @@ Route::apiResource('categories', CategoryController::class);
 Route::get('categories-by-type', [CategoryController::class, 'categoriesByType']);
 Route::apiResource('products', ProductController::class);
 Route::get('best-selling-products', [ProductController::class, 'bestSellingProducts']);
+Route::get('products-stats', [ProductController::class, 'stats']);
+
 
 Route::apiResource('promocodes', PromoCodeController::class);
 

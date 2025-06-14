@@ -21,7 +21,8 @@ return new class extends Migration {
             $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
             $table->string('status'); // Text field
             $table->string('cost_price'); // Text field
-            $table->integer('stock_quantity'); // Text field
+            $table->integer('stock_quantity')->default(1); // Text field
+            $table->integer('sales')->default(0); // Text field
             $table->timestamps();
         });
     }
