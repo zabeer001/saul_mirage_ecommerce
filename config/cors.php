@@ -7,10 +7,7 @@ return [
     'allowed_methods' => ['*'],
 
     // Allow only your frontend domain — NOT '*'
-    'allowed_origins' => [
-        'http://localhost:3000',
-        'http://localhost:3001',
-    ],
+    'allowed_origins' => ['*'],
 
     'allowed_origins_patterns' => [],
 
