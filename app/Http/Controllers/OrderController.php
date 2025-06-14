@@ -261,22 +261,28 @@ class OrderController extends Controller
         }
     }
 
-    public function show($id)
+    public function show($uniq_id)
     {
         try {
-
             $data = Order::with([
                 'products',
-                'promocode:id,name' // assuming you want only the id and name columns from promocode
-            ])->find($id);
+                'promocode:id,name' // Only id and name from promocode
+            ])->where('uniq_id', $uniq_id)->first();
+
+            if (!$data) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Order not found.',
+                ], Response::HTTP_NOT_FOUND);
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data retrived successfully.',
+                'message' => 'Data retrieved successfully.',
                 'data' => $data,
             ], Response::HTTP_OK);
         } catch (\Exception $e) {
-            return HelperMethods::handleException($e, 'Failed to update data.');
+            return HelperMethods::handleException($e, 'Failed to retrieve data.');
         }
     }
 
