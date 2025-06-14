@@ -12,6 +12,8 @@ use App\Models\Order;
 use Symfony\Component\HttpFoundation\Response;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\JWTException;
 
 class OrderController extends Controller
 {
@@ -401,20 +403,74 @@ class OrderController extends Controller
                     'total_sales'  => (float) ($category->total_sales ?? 0),
                 ];
             });
+        $totalOrders = Order::count(); //ok 
+        $customerCount = Customer::count(); //ok
+        $revenue = Order::sum('total'); //ok
+        $averageOrderValue = $revenue / $totalOrders; // opk 
+
 
         return response()->json([
+
+            //below
             'status' => 'success',
             'monthly_sales' => $monthlySales,
             'category_wise_sales' => $categoryWiseSales,
+            //above
+            'totalOrders' => $totalOrders,
+            'customerCount' => $customerCount,
+            'revenue' => $revenue,
+            'averageOrderValue' => $averageOrderValue,
         ]);
     }
 
     public function selfOrderHistory()
     {
-        $user = auth()->user();
+        try {
+            // Authenticate user via JWT
+            $user = JWTAuth::parseToken()->authenticate();
 
-        // Find the corresponding customer by email
-        $customer = Customer::where('email', $user->email)->first();
-        return $customer; 
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated.',
+                ], 401);
+            }
+
+            // Find the corresponding customer by email
+            $customer = Customer::where('email', $user->email)->first();
+
+            if (!$customer) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Customer not found.',
+                ], 404);
+            }
+
+            // Fetch paginated orders where customer_id matches the customer's id
+            $orders = Order::where('customer_id', $customer->id)
+                ->with(['products']) // Adjust based on your relationships
+                ->paginate(10);
+
+            // Optional: Handle case where no orders exist
+            if ($orders->isEmpty()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'orders' => [],
+                        'message' => 'No orders found.',
+                    ],
+                ], 200);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $orders,
+            ], 200);
+        } catch (JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid or expired token.',
+            ], 401);
+        }
     }
 }

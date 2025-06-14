@@ -45,13 +45,15 @@ Route::get('best-selling-products', [ProductController::class, 'bestSellingProdu
 Route::get('products-stats', [ProductController::class, 'stats']);
 
 
+
 Route::apiResource('promocodes', PromoCodeController::class);
 
 Route::apiResource('orders', OrderController::class);
 Route::get('/orders/{uniq_id}', [OrderController::class, 'show']);
 Route::get('order-stats', [OrderController::class, 'last_six_months_stats']);
+Route::get('order-stats-three', [OrderController::class, 'orderStatsThree']);
 Route::get('order-stats-table', [OrderController::class, 'stats']);
-Route::get('selfOrderHistory', [OrderController::class, 'stats']);
+Route::get('self-order-history', [OrderController::class, 'selfOrderHistory']);
 
 
 Route::apiResource('newsletter', NewsLetterController::class);
