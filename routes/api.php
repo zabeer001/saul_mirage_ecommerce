@@ -12,6 +12,7 @@ use App\Http\Controllers\NewsLetterController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\RatingnReviewsController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\UserImageController;
 use App\Models\NewsLetter;
 use App\Models\RatingnReviews;
 
@@ -34,6 +35,7 @@ Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 Route::get('me', [AuthController::class, 'me'])->middleware('auth:api');
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:api');
+Route::post('image-update', [UserImageController::class, 'Update'])->middleware('auth:api');
 
 
 Route::apiResource('categories', CategoryController::class);
@@ -49,6 +51,8 @@ Route::apiResource('orders', OrderController::class);
 Route::get('/orders/{uniq_id}', [OrderController::class, 'show']);
 Route::get('order-stats', [OrderController::class, 'last_six_months_stats']);
 Route::get('order-stats-table', [OrderController::class, 'stats']);
+Route::get('selfOrderHistory', [OrderController::class, 'stats']);
+
 
 Route::apiResource('newsletter', NewsLetterController::class);
 

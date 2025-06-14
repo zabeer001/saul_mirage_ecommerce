@@ -20,6 +20,7 @@ class User extends Authenticatable implements JWTSubject // <-- Implement JWTSub
         'name',
         'email',
         'password',
+        'image',
     ];
 
     /**

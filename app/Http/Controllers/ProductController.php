@@ -104,10 +104,11 @@ class ProductController extends Controller
 
     public function stats()
     {
+        // return 0;
         $totalProducts = Product::count();
         $revenue = Order::sum('total');
-        $outOfStock = Product::where('stock', '<', 1)->count();
-        $lowStock = Product::where('stock', '<', 10)->count();
+        $outOfStock = Product::where('stock_quantity', '<', 1)->count();
+        $lowStock = Product::where('stock_quantity', '<', 10)->count();
         return response()->json([
             'totalProducts' => $totalProducts,
             'lowStock' => $lowStock,

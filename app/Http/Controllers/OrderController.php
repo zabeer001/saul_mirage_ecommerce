@@ -18,7 +18,7 @@ class OrderController extends Controller
     public function __construct()
     {
         // Apply JWT authentication and admin middleware only to store, update, and destroy methods
-        $this->middleware(['auth:api', 'admin'])->only(['store', 'update', 'destroy', 'index', 'last_six_months_stats']);
+        $this->middleware(['auth:api', 'admin'])->only(['update', 'destroy', 'index', 'last_six_months_stats']);
     }
 
 
@@ -407,5 +407,14 @@ class OrderController extends Controller
             'monthly_sales' => $monthlySales,
             'category_wise_sales' => $categoryWiseSales,
         ]);
+    }
+
+    public function selfOrderHistory()
+    {
+        $user = auth()->user();
+
+        // Find the corresponding customer by email
+        $customer = Customer::where('email', $user->email)->first();
+        return $customer; 
     }
 }
