@@ -46,6 +46,8 @@ class OrderSeeder extends Seeder
                 'state'           => "State {$i}",
                 'postal_code'     => "120{$i}",
                 'country'         => "Bangladesh",
+                  'created_at'      => $randomDate,
+                'updated_at'      => $randomDate,
             ]);
 
             $order = Order::create([

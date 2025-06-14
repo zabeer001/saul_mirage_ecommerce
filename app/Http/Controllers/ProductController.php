@@ -73,7 +73,7 @@ class ProductController extends Controller
             $query = Product::with([
                 'media:id,product_id,file_path',
                 'category:id,name'
-            ]);
+            ])->orderBy('updated_at', 'desc');
 
             if ($search) {
                 $query->where('name', 'like', $search . '%');

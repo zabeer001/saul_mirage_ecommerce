@@ -23,10 +23,10 @@ class CustomerController extends Controller
             $search = $validated['search'] ?? null;
             $paginate_count = $validated['paginate_count'] ?? 10;
 
-            $query = Customer::query();
+           $query = Customer::withCount('orders')->orderBy('updated_at', 'desc');
 
             if ($search) {
-                $query->where('name', 'like', $search . '%');
+                $query->where('email', 'like', $search . '%');
             }
 
             $data = $query->paginate($paginate_count);
