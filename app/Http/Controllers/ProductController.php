@@ -65,10 +65,12 @@ class ProductController extends Controller
             $validated = $request->validate([
                 'paginate_count' => 'nullable|integer|min:1',
                 'search' => 'nullable|string|max:255',
+                'status' => 'nullable|string|max:255', // adjust as needed
             ]);
 
             $search = $validated['search'] ?? null;
             $paginate_count = $validated['paginate_count'] ?? 10;
+            $status = $validated['status'] ?? null;
 
             $query = Product::with([
                 'media:id,product_id,file_path',
@@ -77,6 +79,10 @@ class ProductController extends Controller
 
             if ($search) {
                 $query->where('name', 'like', $search . '%');
+            }
+            
+            if ($status) {
+                $query->where('status', $status);
             }
 
             $data = $query->paginate($paginate_count);
@@ -275,7 +281,7 @@ class ProductController extends Controller
 
             $query = Product::withCount('orders')
                 ->with([
-                    
+
                     'category:id,name'
                 ])
                 ->orderByDesc('orders_count');

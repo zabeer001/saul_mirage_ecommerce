@@ -20,6 +20,7 @@ class Customer extends Model
         'state',
         'postal_code',
         'country',
+        'status',
     ];
        public function orders()
     {

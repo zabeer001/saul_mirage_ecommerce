@@ -10,6 +10,7 @@ use App\Models\Customer;
 use App\Models\Order;
 use Symfony\Component\HttpFoundation\Response;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -56,7 +57,6 @@ class OrderController extends Controller
     protected function validateRequest(Request $request): array
     {
         return $request->validate([
-            'uniq_id'         => 'required|string|max:255',
             'full_name'       => 'required|string|max:255',
             'last_name'       => 'required|string|max:255',
             'email'           => 'required|email|max:255',
@@ -75,7 +75,11 @@ class OrderController extends Controller
             'payment_method'  => 'nullable|string|max:100',
             'payment_status'  => 'required|string|in:unpaid,paid',
             'promocode_id'    => 'nullable|exists:promo_codes,id',
+            'products' => 'nullable|array',
+            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.quantity' => 'nullable|integer|min:1|max:100',
             'total'           => 'required|numeric|min:0',
+
         ]);
     }
 
@@ -93,22 +97,34 @@ class OrderController extends Controller
             $validated = $request->validate([
                 'paginate_count' => 'nullable|integer|min:1',
                 'search' => 'nullable|string|max:255',
+                'payment_status' => 'nullable|string|max:255', // update values as per your DB
+                'status' => 'nullable|string|max:255', // adjust as needed
             ]);
-
-
-
-
-
 
 
             $search = $validated['search'] ?? null;
             $paginate_count = $validated['paginate_count'] ?? 10;
+            $payment_status = $validated['payment_status'] ?? null;
+            $status = $validated['status'] ?? null;
 
-            $query = Order::with(['promocode:id,name','customer']);
+            $query = Order::with(['promocode:id,name', 'customer'])->orderBy('updated_at', 'desc');
 
 
             if ($search) {
-                $query->where('name', 'like', $search . '%');
+                $query->where(function ($q) use ($search) {
+                    $q->where('uniq_id', 'like', $search . '%')
+                        ->orWhereHas('customer', function ($customerQuery) use ($search) {
+                            $customerQuery->where('email', 'like', $search . '%')
+                                ->orWhere('phone', 'like', $search . '%');
+                        });
+                });
+            }
+            if ($payment_status) {
+                $query->where('payment_status', $payment_status);
+            }
+
+            if ($status) {
+                $query->where('status', $status);
             }
 
             $data = $query->paginate($paginate_count);
@@ -124,6 +140,23 @@ class OrderController extends Controller
         } catch (\Exception $e) {
             return HelperMethods::handleException($e, 'Failed to fetch data.');
         }
+    }
+
+   public function stats()
+    {
+        $totalOrders = Order::count();
+  
+        $processingOrders = Order::where('status', 'pending')->count();
+        $pendingPayments =  Order::where('payment_status', 'unpaid')->count();
+        $revenue = Order::sum('total');
+        return response()->json([
+            'totalOrders' => $totalOrders,
+            'processing' => $processingOrders,
+            'pendingPayments' => $pendingPayments,
+            'revenue' => $revenue,
+
+
+        ], Response::HTTP_OK);
     }
 
     /**
@@ -142,15 +175,17 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-
         try {
+            // Start a database transaction
+            DB::beginTransaction();
 
+            // Validate the request
             $validated = $this->validateRequest($request);
 
+            // Find or create customer
             $customer = Customer::where('email', $validated['email'])->first();
 
             if (!$customer) {
-                // Create new customer if not found
                 $customer = new Customer();
                 HelperMethods::populateModelFields(
                     $customer,
@@ -161,7 +196,6 @@ class OrderController extends Controller
                 );
                 $customer->save();
             } else {
-                // Optionally update existing customer fields
                 HelperMethods::populateModelFields(
                     $customer,
                     $request,
@@ -172,10 +206,11 @@ class OrderController extends Controller
                 $customer->save();
             }
 
-
-
-            $order = new Product();
+            // Create new order
+            $order = new Order();
             $order->customer_id = $customer->id;
+            $order->uniq_id = $validated['uniq_id'] ?? HelperMethods::generateUniqueId();
+
             HelperMethods::populateModelFields(
                 $order,
                 $request,
@@ -188,19 +223,52 @@ class OrderController extends Controller
             );
             $order->save();
 
+            // Attach products to the order and reduce stock
+            $syncData = [];
+            if (!empty($validated['products'])) {
+                foreach ($validated['products'] as $index => $product) {
+                    // Ensure $product is an array
+                    if (!is_array($product)) {
+                        throw new \Exception("Invalid product data at index {$index}. Expected an array.");
+                    }
 
+                    $productId = $product['product_id'] ?? null;
+                    $quantity = $product['quantity'] ?? rand(1, 5);
 
+                    if (!$productId) {
+                        throw new \Exception("Missing product_id at index {$index}.");
+                    }
+
+                    // Fetch the product and check stock
+                    $productModel = \App\Models\Product::findOrFail($productId);
+                    if ($productModel->stock_quantity < $quantity) {
+                        throw new \Exception("Insufficient stock for product ID {$productId}. Available: {$productModel->stock_quantity}, Requested: {$quantity}.");
+                    }
+
+                    // Reduce stock quantity
+                    $productModel->stock_quantity -= $quantity;
+                    $productModel->save();
+
+                    $syncData[$productId] = ['quantity' => $quantity];
+                }
+                $order->products()->sync($syncData);
+            }
+
+            // Commit the transaction
+            DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'data created successfully.',
+                'message' => 'Data created successfully.',
                 'data' => [
                     'customer' => $customer,
-                    'order' => $order,
+                    'order' => $order->load('products'),
                 ],
             ], Response::HTTP_CREATED);
         } catch (\Exception $e) {
-            return HelperMethods::handleException($e, 'Failed to create category.');
+            // Roll back the transaction on error
+            DB::rollBack();
+            return HelperMethods::handleException($e, 'Failed to create order.');
         }
     }
 

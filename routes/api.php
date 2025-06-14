@@ -46,12 +46,14 @@ Route::apiResource('promocodes', PromoCodeController::class);
 Route::apiResource('orders', OrderController::class);
 Route::get('/orders/{uniq_id}', [OrderController::class, 'show']);
 Route::get('order-stats', [OrderController::class, 'last_six_months_stats']);
+Route::get('order-stats-table', [OrderController::class, 'stats']);
 
 Route::apiResource('newsletter', NewsLetterController::class);
 
 Route::apiResource('reviews', ReviewController::class);
 
 Route::apiResource('customers', CustomerController::class);
+Route::get('customers-stats', [CustomerController::class, 'stats']);
 
 
 
