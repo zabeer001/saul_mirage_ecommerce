@@ -37,4 +37,9 @@ class Order extends Model
     {
         return $this->belongsTo(PromoCode::class, 'promocode_id', 'id');
     }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
 }

@@ -50,7 +50,7 @@ class OrderSeeder extends Seeder
 
             $order = Order::create([
                 'uniq_id'         => HelperMethods::generateUniqueId(),
-                
+                'customer_id'     => $customer->id,
                 'type'            => 'online',
                 'status'          => 'pending',
                 'shipping_method' => 'standard',

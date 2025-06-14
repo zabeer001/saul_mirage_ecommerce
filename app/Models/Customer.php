@@ -21,4 +21,8 @@ class Customer extends Model
         'postal_code',
         'country',
     ];
+       public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
 }

@@ -104,7 +104,7 @@ class OrderController extends Controller
             $search = $validated['search'] ?? null;
             $paginate_count = $validated['paginate_count'] ?? 10;
 
-            $query = Order::with(['promocode:id,name']);
+            $query = Order::with(['promocode:id,name','customer']);
 
 
             if ($search) {
