@@ -17,7 +17,14 @@
                     <tr>
                         <td style="padding-bottom: 20px;">
                             <p style="margin: 0; font-size: 16px; color: #333333;">
-                                <strong style="color: #4a90e2;">From:</strong> {{ $name }}
+                                <strong style="color: #4a90e2;">From:</strong> {{ $email }}
+                            </p>
+                        </td>
+                    </tr>
+                      <tr>
+                        <td style="padding-bottom: 20px;">
+                            <p style="margin: 0; font-size: 16px; color: #333333;">
+                                <strong style="color: #4a90e2;">name:</strong> {{ $name }}
                             </p>
                         </td>
                     </tr>

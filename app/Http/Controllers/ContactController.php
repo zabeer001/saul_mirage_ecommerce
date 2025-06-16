@@ -12,11 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 class ContactController extends Controller
 {
 
-    public function __construct()
-    {
-        // Apply JWT authentication and admin middleware only to store, update, and destroy methods
-        $this->middleware(['auth:api', 'admin'])->only(['index', 'update', 'destroy']);
-    }
+   
 
     protected array $typeOfFields = ['textFields'];
 
@@ -48,38 +44,38 @@ class ContactController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
-    {
-        try {
-            $validated = $request->validate([
-                'paginate_count' => 'nullable|integer|min:1',
-                'search' => 'nullable|string|max:255',
-                'status' => 'nullable|string|max:255', // adjust as needed
-            ]);
+    // public function index(Request $request)
+    // {
+    //     try {
+    //         $validated = $request->validate([
+    //             'paginate_count' => 'nullable|integer|min:1',
+    //             'search' => 'nullable|string|max:255',
+    //             'status' => 'nullable|string|max:255', // adjust as needed
+    //         ]);
 
-            $search = $validated['search'] ?? null;
-            $paginate_count = $validated['paginate_count'] ?? 10;
+    //         $search = $validated['search'] ?? null;
+    //         $paginate_count = $validated['paginate_count'] ?? 10;
 
-            $query = Contact::query();
+    //         $query = Contact::query();
 
-            if ($search) {
-                $query->where('email', 'like', $search . '%');
-            }
+    //         if ($search) {
+    //             $query->where('email', 'like', $search . '%');
+    //         }
 
-            $data = $query->orderBy('created_at', 'desc')->paginate($paginate_count);
+    //         $data = $query->orderBy('created_at', 'desc')->paginate($paginate_count);
 
-            return response()->json([
-                'success' => true,
-                'data' => $data,
-                'current_page' => $data->currentPage(),
-                'total_pages' => $data->lastPage(),
-                'per_page' => $data->perPage(),
-                'total' => $data->total(),
-            ], Response::HTTP_OK);
-        } catch (\Exception $e) {
-            return HelperMethods::handleException($e, 'Failed to fetch data.');
-        }
-    }
+    //         return response()->json([
+    //             'success' => true,
+    //             'data' => $data,
+    //             'current_page' => $data->currentPage(),
+    //             'total_pages' => $data->lastPage(),
+    //             'per_page' => $data->perPage(),
+    //             'total' => $data->total(),
+    //         ], Response::HTTP_OK);
+    //     } catch (\Exception $e) {
+    //         return HelperMethods::handleException($e, 'Failed to fetch data.');
+    //     }
+    // }
 
     /**
      * Show the form for creating a new resource.
@@ -134,8 +130,8 @@ class ContactController extends Controller
 
         $name = $request->name;
         $msg = $request->how_can_we_help;
-        $to = $request->email;
-        Mail::to($to)->send(new ContactMail($name, $msg));
+        $email = $request->email;
+        Mail::to('binzabirtareq@gmail.com')->send(new ContactMail($name, $email ,$msg));
         return "Email sent!";
     }
 }

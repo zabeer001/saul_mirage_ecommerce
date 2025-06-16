@@ -477,4 +477,16 @@ class OrderController extends Controller
             ], 401);
         }
     }
+
+    public function changeStatus(Request $request,$id)
+    {
+
+        $order = Order::find($id);
+
+        $order->status = $request->status;
+
+        $order->save();
+        
+        return 'status updated Successfully';
+    }
 }

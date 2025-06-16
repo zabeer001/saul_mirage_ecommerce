@@ -122,8 +122,20 @@ class ReviewController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Review $review)
+    public function destroy($id)
     {
-        //
+        try {
+             $review = Review::findOrFail($id);
+
+            // Attempt to delete the category
+            $promoCode->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'data deleted successfully',
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return HelperMethods::handleException($e, 'Failed to delete data.');
+        }
     }
 }

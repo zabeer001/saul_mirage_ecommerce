@@ -41,7 +41,7 @@ class ProductController extends Controller
     {
         return $request->validate([
             'name' => 'required|string|max:255',
-            'status' => 'required|string|max:255',
+            'status' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|max:2048', // probably should add 'image' rule if it's an image file
             'images' => 'nullable|array',
@@ -74,7 +74,8 @@ class ProductController extends Controller
 
             $query = Product::with([
                 'media',
-                'category:id,name'
+                'category:id,name',
+                'reviews'
             ])->orderBy('updated_at', 'desc');
 
             if ($search) {
@@ -263,7 +264,7 @@ class ProductController extends Controller
     public function show($id)
     {
         try {
-            $data = Product::with(['category', 'media'])->find($id);
+            $data = Product::with(['category', 'media','reviews'])->find($id);
             return response()->json([
                 'success' => true,
                 'message' => 'Data retrived successfully.',
@@ -327,13 +328,5 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             return HelperMethods::handleException($e, 'Failed to fetch best-selling products.');
         }
-    }
-
-    public function updateStatus(Request $request, $id)
-    {
-
-        $data = Product::find($id);
-        $data->status = $request->status;
-        return 'status updated successfully';
     }
 }

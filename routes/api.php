@@ -46,7 +46,6 @@ Route::get('categories-by-type', [CategoryController::class, 'categoriesByType']
 Route::apiResource('products', ProductController::class);
 Route::get('best-selling-products', [ProductController::class, 'bestSellingProducts']);
 Route::get('products-stats', [ProductController::class, 'stats']);
-Route::get('products-status-update/{id}', [ProductController::class, 'updateStatus']);
 
 
 
@@ -58,6 +57,7 @@ Route::get('order-stats', [OrderController::class, 'last_six_months_stats']);
 Route::get('order-stats-three', [OrderController::class, 'orderStatsThree']);
 Route::get('order-stats-table', [OrderController::class, 'stats']);
 Route::get('self-order-history', [OrderController::class, 'selfOrderHistory']);
+Route::post('/orders-status/{id}', [OrderController::class, 'changeStatus']);
 
 
 Route::apiResource('newsletter', NewsLetterController::class);
