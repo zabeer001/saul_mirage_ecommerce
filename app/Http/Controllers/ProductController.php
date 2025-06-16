@@ -258,7 +258,7 @@ class ProductController extends Controller
     public function show($id)
     {
         try {
-            $data = Product::with('category')->find($id);
+            $data = Product::with(['category','media'])->find($id);
             return response()->json([
                 'success' => true,
                 'message' => 'Data retrived successfully.',
@@ -300,7 +300,8 @@ class ProductController extends Controller
             $query = Product::withCount('orders')
                 ->with([
 
-                    'category:id,name'
+                    'category:id,name',
+                    'media'
                 ])
                 ->orderByDesc('orders_count');
 
