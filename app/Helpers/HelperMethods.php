@@ -150,5 +150,16 @@ class HelperMethods
         ], Response::HTTP_INTERNAL_SERVER_ERROR); // 500
     }
 
+     public static function getStockStatus(int $stockQuantity): string
+    {
+        if ($stockQuantity <= 0) {
+            return 'out of stock';
+        } elseif ($stockQuantity <= 10) {
+            return 'low stock';
+        } else {
+            return 'available';
+        }
+    }
+
 
 }

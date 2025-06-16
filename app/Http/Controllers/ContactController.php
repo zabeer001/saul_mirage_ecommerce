@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\HelperMethods;
+use App\Mail\ContactMail;
 use App\Models\Contact;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpFoundation\Response;
 
 class ContactController extends Controller
@@ -64,7 +66,7 @@ class ContactController extends Controller
                 $query->where('email', 'like', $search . '%');
             }
 
-           $data = $query->orderBy('created_at', 'desc')->paginate($paginate_count);
+            $data = $query->orderBy('created_at', 'desc')->paginate($paginate_count);
 
             return response()->json([
                 'success' => true,
@@ -125,5 +127,15 @@ class ContactController extends Controller
     public function destroy(Contact $contact)
     {
         //
+    }
+
+    public function sendContactMessage(Request $request)
+    {
+
+        $name = $request->name;
+        $msg = $request->how_can_we_help;
+        $to = $request->email;
+        Mail::to($to)->send(new ContactMail($name, $msg));
+        return "Email sent!";
     }
 }

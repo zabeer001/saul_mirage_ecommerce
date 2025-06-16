@@ -24,7 +24,6 @@ class ProductController extends Controller
         'name',
         'description',
         'stock_quantity',
-        'status'
     ];
 
     protected $imageFields = ['image'];
@@ -153,6 +152,10 @@ class ProductController extends Controller
                     'textFields' => $this->textFields,
                 ]
             );
+
+            //stock wise status calculation
+            $data->status = HelperMethods::getStockStatus($data->stock_quantity);
+
             $data->save();
 
             if ($request->hasFile('images')) {
@@ -220,6 +223,8 @@ class ProductController extends Controller
                 ]
             );
 
+            $data->status = HelperMethods::getStockStatus($data->stock_quantity);
+
             // Save updated model
             $data->save();
 
@@ -258,7 +263,7 @@ class ProductController extends Controller
     public function show($id)
     {
         try {
-            $data = Product::with(['category','media'])->find($id);
+            $data = Product::with(['category', 'media'])->find($id);
             return response()->json([
                 'success' => true,
                 'message' => 'Data retrived successfully.',
@@ -322,5 +327,13 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             return HelperMethods::handleException($e, 'Failed to fetch best-selling products.');
         }
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+
+        $data = Product::find($id);
+        $data->status = $request->status;
+        return 'status updated successfully';
     }
 }

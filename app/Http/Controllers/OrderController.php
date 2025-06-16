@@ -252,6 +252,10 @@ class OrderController extends Controller
                     // Reduce stock quantity
                     $productModel->stock_quantity -= $quantity;
                     $productModel->sales += $quantity;
+
+                    //stockwise status
+                   $productModel->status = HelperMethods::getStockStatus($productModel->stock_quantity);
+
                     $productModel->save();
 
                     $syncData[$productId] = ['quantity' => $quantity];
