@@ -74,7 +74,7 @@ class ProductController extends Controller
             $status = $validated['status'] ?? null;
 
             $query = Product::with([
-                'media:id,product_id,file_path',
+                'media',
                 'category:id,name'
             ])->orderBy('updated_at', 'desc');
 
