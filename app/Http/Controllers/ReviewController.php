@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\HelperMethods;
+use App\Models\Customer;
 use App\Models\Review;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\JWTException;
+
 
 class ReviewController extends Controller
 {
@@ -13,7 +17,7 @@ class ReviewController extends Controller
     public function __construct()
     {
         // Apply JWT authentication and admin middleware only to store, update, and destroy methods
-        $this->middleware(['auth:api', 'admin'])->only(['store', 'update', 'destroy']);
+        $this->middleware(['auth:api', 'admin'])->only(['destroy']);
     }
 
     protected array $typeOfFields = ['textFields', 'numericFields'];
@@ -23,7 +27,18 @@ class ReviewController extends Controller
     ];
 
 
-    protected $numericFields = ['user_id', 'product_id', 'rating'];
+    protected $numericFields = ['product_id', 'rating'];
+
+
+    protected function validateRequest(Request $request)
+    {
+        return $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'comment' => 'required|string',
+            'rating' => 'required|numeric|min:1|max:5',
+        ]);
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -68,8 +83,40 @@ class ReviewController extends Controller
     public function store(Request $request)
     {
         try {
-            $validated = $this->validateRequest($request);
 
+            $validated = $this->validateRequest($request);
+            
+            $user = JWTAuth::parseToken()->authenticate();
+            $productId = $request->product_id;
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated.',
+                ], 401);
+            }
+
+            $customer = Customer::where('email', $user->email)->first();
+
+            if (!$customer) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Customer not found.',
+                ], 404);
+            }
+
+            // Get the last order where product_id matches
+            $order = $customer->orders()
+                ->where('product_id', $productId)
+                ->latest()
+                ->first();
+
+            if (!$order) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You have no order for this product, so you cannot make a review.',
+                ], 403);
+            }
             $data = new Review();
 
             HelperMethods::populateModelFields(
@@ -87,13 +134,14 @@ class ReviewController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Category created successfully.',
+                'message' => 'Review created successfully.',
                 'data' => $data,
             ], Response::HTTP_CREATED);
         } catch (\Exception $e) {
-            return HelperMethods::handleException($e, 'Failed to create category.');
+            return HelperMethods::handleException($e, 'Failed to create review.');
         }
     }
+
 
     /**
      * Display the specified resource.
@@ -125,10 +173,10 @@ class ReviewController extends Controller
     public function destroy($id)
     {
         try {
-             $review = Review::findOrFail($id);
+            $review = Review::findOrFail($id);
 
             // Attempt to delete the category
-            $promoCode->delete();
+            $review->delete();
 
             return response()->json([
                 'success' => true,
