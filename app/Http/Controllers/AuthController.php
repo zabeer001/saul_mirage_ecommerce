@@ -41,7 +41,6 @@ class AuthController extends Controller
                 'message' => 'User registered successfully',
                 'data' => $user
             ], 201);
-
         } catch (Exception $e) {
             Log::error('Error registering user: ' . $e->getMessage());
             return response()->json([
@@ -86,7 +85,6 @@ class AuthController extends Controller
                 'token' => $token,
                 'data' => auth()->user()
             ]);
-
         } catch (Exception $e) {
             Log::error('Login error: ' . $e->getMessage());
             return response()->json([
@@ -130,6 +128,121 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to logout.'
+            ], 500);
+        }
+    }
+
+    public function passwordResetForAuthUser(Request $request)
+    {
+        try {
+            // Authenticate user via JWT
+            $user = JWTAuth::parseToken()->authenticate();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated.',
+                ], 401);
+            }
+
+            // Validate password input
+            $validator = Validator::make($request->all(), [
+                'current_password' => 'required|string',
+                'password' => 'required|string|min:6|confirmed', // expects 'password' and 'password_confirmation'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed.',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            // Verify current password
+            if (!Hash::check($request->current_password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Current password is incorrect.',
+                ], 401);
+            }
+
+            $userData = User::find($user->id);
+            // Update password
+            $userData->password = Hash::make($request->password);
+            $userData->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Password updated successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function changeProfileDetails(Request $request)
+    {
+        try {
+            // Authenticate user via JWT
+            $user = JWTAuth::parseToken()->authenticate();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated.',
+                ], 401);
+            }
+
+            // Validate password input
+            $validator = Validator::make($request->all(), [
+
+                'name' => 'nullable|string', // expects 'password' and 'password_confirmation'
+                'email' => 'nullable|email|unique:email',
+                'phone' => 'nullable|string'
+            ]);
+
+            $userData = User::find($user->id);
+            $userData->name = $request->name;
+            $userData->email = $request->email;
+            $userData->phone = $request->phone;
+            $userData->save();
+
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed.',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            // Verify current password
+            if (!Hash::check($request->current_password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Current password is incorrect.',
+                ], 401);
+            }
+
+            $userData = User::find($user->id);
+            // Update password
+            $userData->password = Hash::make($request->password);
+            $userData->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Password updated successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong.',
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

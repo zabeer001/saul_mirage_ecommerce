@@ -36,6 +36,17 @@ Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 Route::get('me', [AuthController::class, 'me'])->middleware('auth:api');
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:api');
+
+// Password reset routes
+Route::post('password/email', [AuthController::class, 'sendResetOTP']);
+Route::post('password/verify-otp', [AuthController::class, 'verifyResetOTP'])->name('password.verify-otp');
+Route::post('password/reset', [AuthController::class, 'passwordReset'])->name('password.reset');
+Route::post('password/reset-for-auth-user', [AuthController::class, 'passwordResetForAuthUser']);
+Route::post('change-profile-details', [AuthController::class, 'changeProfileDetails']);
+
+
+
+
 Route::post('image-update', [UserImageController::class, 'Update'])->middleware('auth:api');
 
 //categories
