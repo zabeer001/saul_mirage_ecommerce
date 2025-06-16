@@ -188,7 +188,7 @@ class AuthController extends Controller
 
     public function changeProfileDetails(Request $request)
     {
-        try {
+        
             // Authenticate user via JWT
             $user = JWTAuth::parseToken()->authenticate();
 
@@ -203,11 +203,11 @@ class AuthController extends Controller
             $validator = Validator::make($request->all(), [
 
                 'name' => 'nullable|string', // expects 'password' and 'password_confirmation'
-                'email' => 'nullable|email|unique:email',
+              'email' => 'nullable|email|unique:users,email',
                 'phone' => 'nullable|string',
                 'image' => 'nullable|max:2048'
             ]);
-
+         
             $userData = User::find($user->id);
             $userData->name = $request->name;
             $userData->email = $request->email;
@@ -215,38 +215,8 @@ class AuthController extends Controller
             $userData->image = HelperMethods::updateImage($request->file('image'), $userData->image);
             $userData->save();
 
+            return 'data updated perfectly';
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validation failed.',
-                    'errors' => $validator->errors(),
-                ], 422);
-            }
-
-            // Verify current password
-            if (!Hash::check($request->current_password, $user->password)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Current password is incorrect.',
-                ], 401);
-            }
-
-            $userData = User::find($user->id);
-            // Update password
-            $userData->password = Hash::make($request->password);
-            $userData->save();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Password updated successfully.',
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Something went wrong.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+  
     }
 }
