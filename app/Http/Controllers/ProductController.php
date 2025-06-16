@@ -75,7 +75,7 @@ class ProductController extends Controller
             $query = Product::with([
                 'media',
                 'category:id,name',
-                'reviews'
+                'reviews.user'
             ])->orderBy('updated_at', 'desc');
 
             if ($search) {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\HelperMethods;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -203,13 +204,15 @@ class AuthController extends Controller
 
                 'name' => 'nullable|string', // expects 'password' and 'password_confirmation'
                 'email' => 'nullable|email|unique:email',
-                'phone' => 'nullable|string'
+                'phone' => 'nullable|string',
+                'image' => 'nullable|max:2048'
             ]);
 
             $userData = User::find($user->id);
             $userData->name = $request->name;
             $userData->email = $request->email;
             $userData->phone = $request->phone;
+            $userData->image = HelperMethods::updateImage($request->file('image'), $userData->image);
             $userData->save();
 
 
