@@ -75,7 +75,7 @@ class ProductController extends Controller
             $query = Product::with([
                 'media',
                 'category:id,name',
-                'reviews.user'
+             
             ])->orderBy('updated_at', 'desc');
 
             if ($search) {
@@ -264,7 +264,7 @@ class ProductController extends Controller
     public function show($id)
     {
         try {
-            $data = Product::with(['category', 'media','reviews'])->find($id);
+            $data = Product::with(['category', 'media','reviews.user'])->find($id);
             return response()->json([
                 'success' => true,
                 'message' => 'Data retrived successfully.',
