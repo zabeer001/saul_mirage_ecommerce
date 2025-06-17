@@ -213,7 +213,7 @@ class OrderController extends Controller
                     ->where('usage_limit', '>', 0)
                     ->first();
 
-            
+
                 if (!$promocodeDiscount) {
                     throw new \Exception('Invalid, expired, or exhausted promocode');
                 }
@@ -542,5 +542,71 @@ class OrderController extends Controller
         $order->save();
 
         return 'status updated Successfully';
+    }
+
+    public function history(Request $request)
+    {
+
+        // return 0;
+
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
+
+            if (!$user) {
+                return response()->json([
+                    'message' => 'you are not authenticated'
+                ], Response::HTTP_OK);
+            }
+
+            $customer = Customer::where('email', $user->email)->first();
+
+            $validated = $request->validate([
+                'paginate_count' => 'nullable|integer|min:1',
+                'search' => 'nullable|string|max:255',
+                'payment_status' => 'nullable|string|max:255', // update values as per your DB
+                'status' => 'nullable|string|max:255', // adjust as needed
+            ]);
+
+
+            $search = $validated['search'] ?? null;
+            $paginate_count = $validated['paginate_count'] ?? 10;
+            $payment_status = $validated['payment_status'] ?? null;
+            $status = $validated['status'] ?? null;
+
+            $query = Order::with(['promocode:id,name', 'customer'])
+                    ->where('customer_id', $customer->id)
+                    ->orderBy('updated_at', 'desc');
+
+
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('uniq_id', 'like', $search . '%')
+                        ->orWhereHas('customer', function ($customerQuery) use ($search) {
+                            $customerQuery->where('email', 'like', $search . '%')
+                                ->orWhere('phone', 'like', $search . '%');
+                        });
+                });
+            }
+            if ($payment_status) {
+                $query->where('payment_status', $payment_status);
+            }
+
+            if ($status) {
+                $query->where('status', $status);
+            }
+
+            $data = $query->paginate($paginate_count);
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'current_page' => $data->currentPage(),
+                'total_pages' => $data->lastPage(),
+                'per_page' => $data->perPage(),
+                'total' => $data->total(),
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return HelperMethods::handleException($e, 'Failed to fetch data.');
+        }
     }
 }
