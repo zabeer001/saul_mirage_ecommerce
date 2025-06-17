@@ -215,7 +215,7 @@ class AuthController extends Controller
             $userData->image = HelperMethods::updateImage($request->file('image'), $userData->image);
             $userData->save();
 
-            return 'data updated perfectly';
+            return response()->json(['message' => 'Data updated perfectly']);
 
   
     }
