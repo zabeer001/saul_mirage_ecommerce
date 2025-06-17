@@ -26,7 +26,7 @@ class OrderController extends Controller
     public function __construct()
     {
         // Apply JWT authentication and admin middleware only to store, update, and destroy methods
-        $this->middleware(['auth:api', 'admin'])->only(['update', 'destroy', 'index', 'last_six_months_stats']);
+        $this->middleware(['auth:api', 'admin'])->only(['update', 'destroy', 'last_six_months_stats']);
     }
 
 
@@ -100,42 +100,58 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        // return 0;
-
         try {
+            // Validate the request
             $validated = $request->validate([
                 'paginate_count' => 'nullable|integer|min:1',
                 'search' => 'nullable|string|max:255',
-                'payment_status' => 'nullable|string|max:255', // update values as per your DB
-                'status' => 'nullable|string|max:255', // adjust as needed
+                'payment_status' => 'nullable|string|max:255',
+                'status' => 'nullable|string|max:255',
             ]);
-
 
             $search = $validated['search'] ?? null;
             $paginate_count = $validated['paginate_count'] ?? 10;
             $payment_status = $validated['payment_status'] ?? null;
             $status = $validated['status'] ?? null;
 
+            // Initialize query with relationships
             $query = Order::with(['promocode:id,name', 'customer'])->orderBy('updated_at', 'desc');
 
+            // Check if user is authenticated and their role
+            $user = null;
+            try {
+                $user = JWTAuth::parseToken()->authenticate();
+            } catch (JWTException $e) {
+                // User is not authenticated; proceed without user
+            }
 
+            // If user is authenticated and not admin, filter by customer
+            if ($user && $user->role !== 'admin') { // Check role instead of is_admin
+                $customer = Customer::where('email', $user->email)->first();
+                if (!$customer) {
+                    throw new ModelNotFoundException('Customer not found for the authenticated user.');
+                }
+                $query->where('customer_id', $customer->id);
+            }
+
+            // Apply search and filters
             if ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('uniq_id', 'like', $search . '%')
                         ->orWhereHas('customer', function ($customerQuery) use ($search) {
                             $customerQuery->where('email', 'like', $search . '%')
-                                ->orWhere('phone', 'like', $search . '%');
+                                         ->orWhere('phone', 'like', $search . '%');
                         });
                 });
             }
             if ($payment_status) {
                 $query->where('payment_status', $payment_status);
             }
-
             if ($status) {
                 $query->where('status', $status);
             }
 
+            // Paginate results
             $data = $query->paginate($paginate_count);
 
             return response()->json([
@@ -146,8 +162,60 @@ class OrderController extends Controller
                 'per_page' => $data->perPage(),
                 'total' => $data->total(),
             ], Response::HTTP_OK);
+        } catch (ValidationException $e) {
+            Log::warning('Validation failed in OrderController::index', [
+                'errors' => $e->errors(),
+                'request' => $request->all()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed. Please check the provided data.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (ModelNotFoundException $e) {
+            Log::error('Model not found in OrderController::index', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Customer not found for the authenticated user.'
+            ], 404);
+        } catch (QueryException $e) {
+            Log::error('Database error in OrderController::index', [
+                'message' => $e->getMessage(),
+                'sql' => $e->getSql(),
+                'bindings' => $e->getBindings(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error occurred while fetching orders.'
+            ], 500);
+        } catch (JWTException $e) {
+            Log::warning('JWT authentication error in OrderController::index', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            // Allow unauthenticated access for admins or public access
+            $data = $query->paginate($paginate_count);
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'current_page' => $data->currentPage(),
+                'total_pages' => $data->lastPage(),
+                'per_page' => $data->perPage(),
+                'total' => $data->total(),
+            ], Response::HTTP_OK);
         } catch (\Exception $e) {
-            return HelperMethods::handleException($e, 'Failed to fetch data.');
+            Log::error('Unexpected error in OrderController::index', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch orders: ' . $e->getMessage()
+            ], 500);
         }
     }
 
