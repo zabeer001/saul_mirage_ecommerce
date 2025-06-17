@@ -9,6 +9,7 @@ use App\Helpers\HelperMethods;
 use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\PromoCode;
 use Symfony\Component\HttpFoundation\Response;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -215,6 +216,28 @@ class OrderController extends Controller
             $order->customer_id = $customer->id;
             $order->uniq_id = $validated['uniq_id'] ?? HelperMethods::generateUniqueId();
 
+
+            if ($request->promocode_id) {
+                $promocodeDiscount = PromoCode::where('id', $validated['promocode_id'])
+                    ->where('status', 'active')
+                    ->where('usage_limit', '>', 0)
+                    ->first();
+                if (!$promocodeDiscount) {
+                    throw new \Exception('Invalid or expired promocode');
+                } else {
+                    $promocodeDiscount->usage_limit = $promocodeDiscount->usage_limit - 1;
+                    $promocodeDiscount->save(); // <- required to persist the change
+                }
+            }
+
+            if ($promocodeDiscount) {
+                if ($promocodeDiscount->type === 'usd') {
+                    $promocodeDiscountInUSD = $promocodeDiscount->discount ?? 0;
+                } elseif ($promocodeDiscount->type === 'percent') {
+                    $promocodeDiscountInPercent = $promocodeDiscount->discount ?? 0;
+                }
+            }
+
             HelperMethods::populateModelFields(
                 $order,
                 $request,
@@ -225,6 +248,17 @@ class OrderController extends Controller
                     'textFields' => $this->textFields,
                 ]
             );
+
+            if ($promocodeDiscount &&  $promocodeDiscountInUSD) {
+                $order->total = $order->total - $promocodeDiscountInUSD;
+            }
+            if ($promocodeDiscount &&  $promocodeDiscountInPercent) {
+
+                $discountAmount = $order->total * $promocodeDiscountInPercent / 100;
+
+                $order->total = $order->total - $discountAmount;
+            }
+
             $order->save();
 
             // Attach products to the order and reduce stock
@@ -254,7 +288,7 @@ class OrderController extends Controller
                     $productModel->sales += $quantity;
 
                     //stockwise status
-                   $productModel->status = HelperMethods::getStockStatus($productModel->stock_quantity);
+                    $productModel->status = HelperMethods::getStockStatus($productModel->stock_quantity);
 
                     $productModel->save();
 
@@ -478,7 +512,7 @@ class OrderController extends Controller
         }
     }
 
-    public function changeStatus(Request $request,$id)
+    public function changeStatus(Request $request, $id)
     {
 
         $order = Order::find($id);
@@ -486,7 +520,7 @@ class OrderController extends Controller
         $order->status = $request->status;
 
         $order->save();
-        
+
         return 'status updated Successfully';
     }
 }

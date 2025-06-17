@@ -149,7 +149,7 @@ class AuthController extends Controller
             // Validate password input
             $validator = Validator::make($request->all(), [
                 'current_password' => 'required|string',
-                'password' => 'required|string|min:6|confirmed', // expects 'password' and 'password_confirmation'
+                'password' => 'required|string|min:6', // expects 'password' and 'password_confirmation'
             ]);
 
             if ($validator->fails()) {
