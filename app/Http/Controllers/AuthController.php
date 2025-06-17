@@ -203,14 +203,14 @@ class AuthController extends Controller
             $validator = Validator::make($request->all(), [
 
                 'name' => 'nullable|string', // expects 'password' and 'password_confirmation'
-              'email' => 'nullable|email|unique:users,email',
+
                 'phone' => 'nullable|string',
                 'image' => 'nullable|max:2048'
             ]);
          
             $userData = User::find($user->id);
             $userData->name = $request->name;
-            $userData->email = $request->email;
+  
             $userData->phone = $request->phone;
             $userData->image = HelperMethods::updateImage($request->file('image'), $userData->image);
             $userData->save();

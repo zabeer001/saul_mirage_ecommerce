@@ -181,63 +181,40 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         try {
-            // Start a database transaction
             DB::beginTransaction();
 
             // Validate the request
             $validated = $this->validateRequest($request);
 
             // Find or create customer
-            $customer = Customer::where('email', $validated['email'])->first();
+            $customer = Customer::firstOrNew(['email' => $validated['email']]);
+            HelperMethods::populateModelFields(
+                $customer,
+                $request,
+                $validated,
+                ['textFields'],
+                ['textFields' => $this->customerInfo]
+            );
+            $customer->save();
 
-            if (!$customer) {
-                $customer = new Customer();
-                HelperMethods::populateModelFields(
-                    $customer,
-                    $request,
-                    $validated,
-                    ['textFields'],
-                    ['textFields' => $this->customerInfo]
-                );
-                $customer->save();
-            } else {
-                HelperMethods::populateModelFields(
-                    $customer,
-                    $request,
-                    $validated,
-                    ['textFields'],
-                    ['textFields' => $this->customerInfo]
-                );
-                $customer->save();
-            }
-
-            // Create new order
-            $order = new Order();
-            $order->customer_id = $customer->id;
-            $order->uniq_id = $validated['uniq_id'] ?? HelperMethods::generateUniqueId();
-
-
-            if ($request->promocode_id) {
+            // Validate promocode
+            $promocodeDiscount = null;
+            if ($validated['promocode_id'] ?? null) {
                 $promocodeDiscount = PromoCode::where('id', $validated['promocode_id'])
                     ->where('status', 'active')
                     ->where('usage_limit', '>', 0)
                     ->first();
                 if (!$promocodeDiscount) {
-                    throw new \Exception('Invalid or expired promocode');
-                } else {
-                    $promocodeDiscount->usage_limit = $promocodeDiscount->usage_limit - 1;
-                    $promocodeDiscount->save(); // <- required to persist the change
+                    throw new \Exception('Invalid, expired, or exhausted promocode');
                 }
+                $promocodeDiscount->usage_limit = $promocodeDiscount->usage_limit - 1;
+                $promocodeDiscount->save();
             }
 
-            if ($promocodeDiscount) {
-                if ($promocodeDiscount->type === 'usd') {
-                    $promocodeDiscountInUSD = $promocodeDiscount->discount ?? 0;
-                } elseif ($promocodeDiscount->type === 'percent') {
-                    $promocodeDiscountInPercent = $promocodeDiscount->discount ?? 0;
-                }
-            }
-
+            // Create order
+            $order = new Order();
+            $order->customer_id = $customer->id;
+            $order->uniq_id = $validated['uniq_id'] ?? HelperMethods::generateUniqueId();
             HelperMethods::populateModelFields(
                 $order,
                 $request,
@@ -249,47 +226,37 @@ class OrderController extends Controller
                 ]
             );
 
-            if ($promocodeDiscount &&  $promocodeDiscountInUSD) {
-                $order->total = $order->total - $promocodeDiscountInUSD;
+
+            return $promocodeDiscount->type;
+            
+
+            // Apply discount
+            if ($promocodeDiscount) {
+                if ($promocodeDiscount->type = 'percentage') {
+                    $order->total = $order->total - ($order->total * $promocodeDiscount->
+               
             }
-            if ($promocodeDiscount &&  $promocodeDiscountInPercent) {
-
-                $discountAmount = $order->total * $promocodeDiscountInPercent / 100;
-
-                $order->total = $order->total - $discountAmount;
-            }
-
+            return $order->total;
             $order->save();
 
             // Attach products to the order and reduce stock
             $syncData = [];
             if (!empty($validated['products'])) {
                 foreach ($validated['products'] as $index => $product) {
-                    // Ensure $product is an array
                     if (!is_array($product)) {
                         throw new \Exception("Invalid product data at index {$index}. Expected an array.");
                     }
+                    $productId = $product['product_id'] ?? throw new \Exception("Missing product_id at index {$index}");
+                    $quantity = $product['quantity'] ?? throw new \Exception("Quantity required for product ID {$productId}");
 
-                    $productId = $product['product_id'] ?? null;
-                    $quantity = $product['quantity'] ?? rand(1, 5);
-
-                    if (!$productId) {
-                        throw new \Exception("Missing product_id at index {$index}.");
-                    }
-
-                    // Fetch the product and check stock
-                    $productModel = \App\Models\Product::findOrFail($productId);
+                    $productModel = \App\Models\Product::lockForUpdate()->findOrFail($productId);
                     if ($productModel->stock_quantity < $quantity) {
-                        throw new \Exception("Insufficient stock for product ID {$productId}. Available: {$productModel->stock_quantity}, Requested: {$quantity}.");
+                        throw new \Exception("Insufficient stock for product ID {$productId}. Available: {$productModel->stock_quantity}, Requested: {$quantity}");
                     }
 
-                    // Reduce stock quantity
                     $productModel->stock_quantity -= $quantity;
                     $productModel->sales += $quantity;
-
-                    //stockwise status
                     $productModel->status = HelperMethods::getStockStatus($productModel->stock_quantity);
-
                     $productModel->save();
 
                     $syncData[$productId] = ['quantity' => $quantity];
@@ -297,7 +264,6 @@ class OrderController extends Controller
                 $order->products()->sync($syncData);
             }
 
-            // Commit the transaction
             DB::commit();
 
             return response()->json([
@@ -309,11 +275,10 @@ class OrderController extends Controller
                 ],
             ], Response::HTTP_CREATED);
         } catch (\Exception $e) {
-            // Roll back the transaction on error
-            DB::rollBack();
-            return HelperMethods::handleException($e, 'Failed to create order.');
+            return HelperMethods::handleException($e, 'Failed to fetch best-selling products.');
         }
     }
+
 
     /**
      * Display the specified resource.
