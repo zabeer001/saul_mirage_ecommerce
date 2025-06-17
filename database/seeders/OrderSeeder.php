@@ -61,7 +61,6 @@ class OrderSeeder extends Seeder
                 'order_summary'   => 'Subtotal: $100.00 | Tax: $15.00 | Total: $165.00',
                 'payment_method'  => 'cash_on_delivery',
                 'payment_status'  => 'unpaid',
-                'promocode_id'    => $selectedPromo->id,
                 'total'           => 165.00,
                 'created_at'      => $randomDate,
                 'updated_at'      => $randomDate,

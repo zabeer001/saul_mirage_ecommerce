@@ -22,6 +22,7 @@ class Order extends Model
         'payment_method',
         'payment_status',
         'promocode_id',
+        'promocode_name',
         'total',
     ];
 

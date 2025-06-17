@@ -26,6 +26,7 @@ return new class extends Migration
             $table->string('payment_status')->default('unpaid');
             $table->unsignedBigInteger('promocode_id')->nullable(); // Must be nullable for onDelete('set null')
             $table->foreign('promocode_id')->references('id')->on('promo_codes')->onDelete('set null');
+            $table->string('promocode_name')->nullable();
             $table->decimal('total');
             $table->timestamps();
         });

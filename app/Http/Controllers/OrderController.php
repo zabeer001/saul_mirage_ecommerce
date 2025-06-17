@@ -15,6 +15,11 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
+
 
 class OrderController extends Controller
 {
@@ -36,13 +41,13 @@ class OrderController extends Controller
         'shipping_method',
         'payment_method',
         'payment_status',
+        'promocode_name',
     ];
 
     protected array $numericFields = [
         'items',
         'customer_id',
         'total',
-        'promocode_id',
     ];
 
     protected array $customerInfo = [
@@ -78,10 +83,10 @@ class OrderController extends Controller
             'order_summary'   => 'nullable|string', // or array/json if casted
             'payment_method'  => 'nullable|string|max:100',
             'payment_status'  => 'required|string|in:unpaid,paid',
-            'promocode_id'    => 'nullable|exists:promo_codes,id',
             'products' => 'nullable|array',
             'products.*.product_id' => 'required|exists:products,id',
             'products.*.quantity' => 'nullable|integer|min:1|max:100',
+            'promocode_name'  => 'nullable|string|max:100',
             'total'           => 'required|numeric|min:0',
 
         ]);
@@ -199,11 +204,16 @@ class OrderController extends Controller
 
             // Validate promocode
             $promocodeDiscount = null;
-            if ($validated['promocode_id'] ?? null) {
-                $promocodeDiscount = PromoCode::where('id', $validated['promocode_id'])
+
+
+            if ($validated['promocode_name'] ?? null) {
+
+                $promocodeDiscount = PromoCode::where('name', $validated['promocode_name'])
                     ->where('status', 'active')
                     ->where('usage_limit', '>', 0)
                     ->first();
+
+            
                 if (!$promocodeDiscount) {
                     throw new \Exception('Invalid, expired, or exhausted promocode');
                 }
@@ -226,17 +236,20 @@ class OrderController extends Controller
                 ]
             );
 
-
-            return $promocodeDiscount->type;
-            
+            // return $promocodeDiscount->type;
 
             // Apply discount
             if ($promocodeDiscount) {
-                if ($promocodeDiscount->type = 'percentage') {
-                    $order->total = $order->total - ($order->total * $promocodeDiscount->
-               
+                if ($promocodeDiscount->type === 'percentage') {
+                    $order->total -= ($order->total * floatval($promocodeDiscount->amount) / 100);
+                } elseif ($promocodeDiscount->type === 'fixed') {
+                    $order->total -= floatval($promocodeDiscount->amount);
+                }
+                // return $promocodeDiscount->id;
+                $order->promocode_id = $promocodeDiscount->id;
             }
-            return $order->total;
+
+            // return $order->total;
             $order->save();
 
             // Attach products to the order and reduce stock
@@ -274,10 +287,52 @@ class OrderController extends Controller
                     'order' => $order->load('products'),
                 ],
             ], Response::HTTP_CREATED);
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            Log::warning('Validation failed in OrderController::store', [
+                'errors' => $e->errors(),
+                'request' => $request->all()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed. Please check the provided data.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            Log::error('Model not found in OrderController::store', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Resource not found. Invalid promocode or product ID.'
+            ], 404);
+        } catch (QueryException $e) {
+            DB::rollBack();
+            Log::error('Database error in OrderController::store', [
+                'message' => $e->getMessage(),
+                'sql' => $e->getSql(),
+                'bindings' => $e->getBindings(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error occurred while processing the order.'
+            ], 500);
         } catch (\Exception $e) {
-            return HelperMethods::handleException($e, 'Failed to fetch best-selling products.');
+            DB::rollBack();
+            Log::error('Unexpected error in OrderController::store', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create order: ' . $e->getMessage()
+            ], 500);
         }
     }
+
 
 
     /**
