@@ -188,35 +188,42 @@ class AuthController extends Controller
 
     public function changeProfileDetails(Request $request)
     {
-        
-            // Authenticate user via JWT
-            $user = JWTAuth::parseToken()->authenticate();
+        // Authenticate user via JWT
+        $user = JWTAuth::parseToken()->authenticate();
 
-            if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not authenticated.',
-                ], 401);
-            }
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated.',
+            ], 401);
+        }
 
-            // Validate password input
-            $validator = Validator::make($request->all(), [
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'name' => 'nullable|string',
+            'phone' => 'nullable|string',
+            'image' => 'nullable|image|max:2048', // Ensure it's an image
+        ]);
 
-                'name' => 'nullable|string', // expects 'password' and 'password_confirmation'
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
 
-                'phone' => 'nullable|string',
-                'image' => 'nullable|max:2048'
-            ]);
-         
-            $userData = User::find($user->id);
-            $userData->name = $request->name;
-  
-            $userData->phone = $request->phone;
+        $userData = User::find($user->id);
+        $userData->name = $request->name ?? $userData->name;
+        $userData->phone = $request->phone ?? $userData->phone;
+        if ($request->hasFile('image')) {
             $userData->image = HelperMethods::updateImage($request->file('image'), $userData->image);
-            $userData->save();
+        }
+        $userData->save();
 
-            return response()->json(['message' => 'Data updated perfectly']);
-
-  
+        return response()->json([
+            'success' => true,
+            'message' => 'Data updated perfectly.',
+            'user' => $userData,
+        ]);
     }
 }
