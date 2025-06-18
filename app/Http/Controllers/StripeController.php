@@ -96,4 +96,28 @@ class StripeController extends Controller
             'order_status' => $session->payment_status === 'paid' ? 'completed' : 'pending'
         ]);
     }
+
+
+    public function checkoutSuccess(Request $request)
+    {
+        $sessionId = $request->query('session_id');
+        $checkoutSession = Session::retrieve($sessionId);
+
+        if ($checkoutSession->payment_status === 'paid') {
+            // Update order status to paid
+            $order = Order::where('session_id', $sessionId)->first();
+            if ($order) {
+                $order->update(['payment_status' => 'paid']);
+            }
+
+            return redirect('/')->with('message', 'Payment successful!');
+        }
+
+        return redirect('/')->with('error', 'Payment not completed.');
+    }
+
+    public function checkoutCancel()
+    {
+        return redirect('/')->with('error', 'Payment was canceled.');
+    }
 }
