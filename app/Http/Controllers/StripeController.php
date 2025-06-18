@@ -13,7 +13,7 @@ class StripeController extends Controller
     {
         Stripe::setApiKey(env('STRIPE_SECRET'));
     }
-   
+
     public function checkout(Request $request)
     {
         // Validate request data
@@ -21,7 +21,7 @@ class StripeController extends Controller
             'order_id' => 'required|exists:orders,id',
             'email' => 'required|email',
         ]);
-     
+
         $order = Order::findOrFail($request->order_id);
 
         // Create Stripe Checkout session
@@ -42,6 +42,10 @@ class StripeController extends Controller
             'success_url' => route('stripe.success') . '?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => route('stripe.cancel'),
             'customer_email' => $request->email, // Add customer email
+            'metadata' => [ // Add order_id to metadata
+                'order_id' => $order->id
+            ]
+
         ]);
 
         // Save the session ID to the order
@@ -53,35 +57,35 @@ class StripeController extends Controller
         ]);
     }
 
-    public function webhook(Request $request)
-    {
-        $payload = $request->getContent();
-        $sig_header = $request->header('Stripe-Signature');
-        $endpoint_secret = env('STRIPE_WEBHOOK_SECRET');
+    // public function webhook(Request $request)
+    // {
+    //     $payload = $request->getContent();
+    //     $sig_header = $request->header('Stripe-Signature');
+    //     $endpoint_secret = env('STRIPE_WEBHOOK_SECRET');
 
-        try {
-            $event = \Stripe\Webhook::constructEvent(
-                $payload, $sig_header, $endpoint_secret
-            );
-        } catch (\UnexpectedValueException $e) {
-            return response()->json(['error' => 'Invalid payload'], 400);
-        } catch (\Stripe\Exception\SignatureVerificationException $e) {
-            return response()->json(['error' => 'Invalid signature'], 400);
-        }
+    //     try {
+    //         $event = \Stripe\Webhook::constructEvent(
+    //             $payload, $sig_header, $endpoint_secret
+    //         );
+    //     } catch (\UnexpectedValueException $e) {
+    //         return response()->json(['error' => 'Invalid payload'], 400);
+    //     } catch (\Stripe\Exception\SignatureVerificationException $e) {
+    //         return response()->json(['error' => 'Invalid signature'], 400);
+    //     }
 
-        // Handle the checkout.session.completed event
-        if ($event->type == 'checkout.session.completed') {
-            $session = $event->data->object;
-            
-            // Update order status
-            $order = Order::where('session_id', $session->id)->first();
-            if ($order) {
-                $order->update(['payment_status' => 'paid']);
-            }
-        }
+    //     // Handle the checkout.session.completed event
+    //     if ($event->type == 'checkout.session.completed') {
+    //         $session = $event->data->object;
 
-        return response()->json(['status' => 'success']);
-    }
+    //         // Update order status
+    //         $order = Order::where('session_id', $session->id)->first();
+    //         if ($order) {
+    //             $order->update(['payment_status' => 'paid']);
+    //         }
+    //     }
+
+    //     return response()->json(['status' => 'success']);
+    // }
 
     public function checkPaymentStatus(Request $request)
     {
@@ -99,22 +103,31 @@ class StripeController extends Controller
 
 
     public function checkoutSuccess(Request $request)
-    {
-        $sessionId = $request->query('session_id');
-        $checkoutSession = Session::retrieve($sessionId);
+{
+    $sessionId = $request->query('session_id');
+    $checkoutSession = Session::retrieve($sessionId);
+    $orderId = $checkoutSession->metadata->order_id;
+    $order_id = (int) $orderId;
 
-        if ($checkoutSession->payment_status === 'paid') {
-            // Update order status to paid
-            $order = Order::where('session_id', $sessionId)->first();
-            if ($order) {
-                $order->update(['payment_status' => 'paid']);
-            }
-
-            return redirect('/')->with('message', 'Payment successful!');
+    if ($checkoutSession->payment_status === 'paid') {
+        $order = Order::findOrFail($order_id);
+        if ($order) {
+            $order->update(['payment_status' => 'paid']);
         }
 
-        return redirect('/')->with('error', 'Payment not completed.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment successful!',
+            'redirect_url' => 'https://your-nextjs-site.com/success'
+        ]);
     }
+
+    return response()->json([
+        'success' => false,
+        'message' => 'Payment not completed.',
+        'redirect_url' => 'https://your-nextjs-site.com/error'
+    ], 400);
+}
 
     public function checkoutCancel()
     {
