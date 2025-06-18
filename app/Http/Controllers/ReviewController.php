@@ -51,7 +51,7 @@ class ReviewController extends Controller
 
             $paginate_count = $validated['paginate_count'] ?? 10;
 
-            $query = Review::with(['user', 'products']);
+            $query = Review::with(['user', 'product']);
 
             $data = $query->paginate($paginate_count);
 
@@ -214,7 +214,7 @@ class ReviewController extends Controller
                 ->pluck('id');
 
             // Step 2: Fetch those reviews with relationships + paginate
-            $query = Review::with(['user', 'products'])
+            $query = Review::with(['user', 'product'])
                 ->whereIn('id', $reviewIds);
 
             $data = $query->paginate($paginate_count);
