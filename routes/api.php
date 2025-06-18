@@ -13,6 +13,7 @@ use App\Http\Controllers\NewsLetterController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\RatingnReviewsController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\StripeController;
 use App\Http\Controllers\UserImageController;
 use App\Models\NewsLetter;
 use App\Models\RatingnReviews;
@@ -72,21 +73,18 @@ Route::get('self-order-history', [OrderController::class, 'selfOrderHistory']);
 Route::post('/orders-status/{id}', [OrderController::class, 'changeStatus']);
 
 
+/** Stripe Routes */
+Route::get('stripe/payment', [StripeController::class, 'payWithStripe'])->name('stripe.payment');
+Route::get('stripe/success', [StripeController::class, 'stripeSuccess'])->name('stripe.success');
+Route::get('stripe/cancel', [StripeController::class, 'stripeCancel'])->name('stripe.cancel');
+
 Route::apiResource('newsletter', NewsLetterController::class);
 
 Route::apiResource('reviews', ReviewController::class);
+Route::get('reviews-home-page', [ReviewController::class, 'reviewsHomePage']);
+
 
 Route::apiResource('customers', CustomerController::class);
 Route::get('customers-stats', [CustomerController::class, 'stats']);
 
 Route::post('send-contact-mail', [ContactController::class, 'sendContactMessage']);
-
-
-
-
-
-
-
-
-
-

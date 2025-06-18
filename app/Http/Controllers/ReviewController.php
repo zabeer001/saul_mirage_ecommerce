@@ -83,11 +83,14 @@ class ReviewController extends Controller
     public function store(Request $request)
     {
         try {
+            // return 'ok';
 
             $validated = $this->validateRequest($request);
-            
+
             $user = JWTAuth::parseToken()->authenticate();
             $productId = $request->product_id;
+
+            // return 'ok';
 
             if (!$user) {
                 return response()->json([
@@ -96,20 +99,26 @@ class ReviewController extends Controller
                 ], 401);
             }
 
+
             $customer = Customer::where('email', $user->email)->first();
+            // return 'ok';
 
             if (!$customer) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Customer not found.',
+                    'err' => 'Customer not found.',
+                    'message' => 'You didnt purchase this product.',
                 ], 404);
             }
 
             // Get the last order where product_id matches
             $order = $customer->orders()
-                ->where('product_id', $productId)
+                ->whereHas('products', function ($query) use ($productId) {
+                    $query->where('products.id', $productId);
+                })
                 ->latest()
                 ->first();
+            // return 'ok';
 
             if (!$order) {
                 return response()->json([
@@ -129,6 +138,8 @@ class ReviewController extends Controller
                     'numericFields' => $this->numericFields,
                 ]
             );
+
+            $data->user_id = $user->id;
 
             $data->save();
 
@@ -184,6 +195,40 @@ class ReviewController extends Controller
             ], Response::HTTP_OK);
         } catch (\Exception $e) {
             return HelperMethods::handleException($e, 'Failed to delete data.');
+        }
+    }
+    public function reviewsHomePage(Request $request)
+    {
+
+        try {
+            $validated = $request->validate([
+                'paginate_count' => 'nullable|integer|min:1',
+            ]);
+
+            $paginate_count = $validated['paginate_count'] ?? 10;
+
+            // Step 1: Get unique review IDs (latest review per user-product pair)
+            $reviewIds = Review::where('rating', 5)
+                ->selectRaw('MAX(id) as id')
+                ->groupBy('product_id', 'user_id')
+                ->pluck('id');
+
+            // Step 2: Fetch those reviews with relationships + paginate
+            $query = Review::with(['user', 'products'])
+                ->whereIn('id', $reviewIds);
+
+            $data = $query->paginate($paginate_count);
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'current_page' => $data->currentPage(),
+                'total_pages' => $data->lastPage(),
+                'per_page' => $data->perPage(),
+                'total' => $data->total(),
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return HelperMethods::handleException($e, 'Failed to fetch data.');
         }
     }
 }
