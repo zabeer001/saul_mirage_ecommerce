@@ -51,7 +51,7 @@ class ReviewController extends Controller
 
             $paginate_count = $validated['paginate_count'] ?? 10;
 
-            $query = Review::with(['user', 'product']);
+            $query = Review::with(['user', 'products']);
 
             $data = $query->paginate($paginate_count);
 
