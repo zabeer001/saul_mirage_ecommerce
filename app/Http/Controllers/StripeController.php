@@ -11,63 +11,89 @@ class StripeController extends Controller
 {
     public function __construct()
     {
-        Stripe::setApiKey(env('STRIPE_SECRET')); // Set Stripe secret key
+        Stripe::setApiKey(env('STRIPE_SECRET'));
     }
-
+   
     public function checkout(Request $request)
     {
         // Validate request data
         $request->validate([
             'order_id' => 'required|exists:orders,id',
+            'email' => 'required|email',
         ]);
-
+     
         $order = Order::findOrFail($request->order_id);
-        $user = auth()->user();
-
-        // Create line items for Stripe Checkout
-        $lineItems = [
-            [
-                'price_data' => [
-                    'currency' => env('CASHIER_CURRENCY', 'usd'),
-                    'unit_amount' => (float) $order->total * 100, // Convert total to cents
-                ],
-            ],
-        ];
 
         // Create Stripe Checkout session
-        $checkoutSession = Session::create([
-            'payment_method_types' => ['card'],
-            'line_items' => $lineItems,
-            'customer_email' => $user ? $user->email : $request->input('email'),
+        $session = Session::create([
+            'line_items' => [
+                [
+                    'price_data' => [
+                        'currency' => 'usd',
+                        'product_data' => [
+                            'name' => 'Product'
+                        ],
+                        'unit_amount' => round((float) $order->total * 100),
+                    ],
+                    'quantity' => 1
+                ]
+            ],
             'mode' => 'payment',
-            'success_url' => route('stripe-success') . '?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => route('stripe-cancel'),
-            'metadata' => ['order_id' => $order->id],
+            'success_url' => route('stripe.success') . '?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => route('stripe.cancel'),
+            'customer_email' => $request->email, // Add customer email
         ]);
 
-        return response()->json(['payment_url' => $checkoutSession->url]);
+        // Save the session ID to the order
+        $order->update(['session_id' => $session->id]);
+
+        return response()->json([
+            'status' => 'success',
+            'checkout_url' => $session->url
+        ]);
     }
 
-    public function checkoutSuccess(Request $request)
+    public function webhook(Request $request)
     {
-        $sessionId = $request->query('session_id');
-        $checkoutSession = Session::retrieve($sessionId);
+        $payload = $request->getContent();
+        $sig_header = $request->header('Stripe-Signature');
+        $endpoint_secret = env('STRIPE_WEBHOOK_SECRET');
 
-        if ($checkoutSession->payment_status === 'paid') {
-            // Update order status to paid
-            $order = Order::where('session_id', $sessionId)->first();
+        try {
+            $event = \Stripe\Webhook::constructEvent(
+                $payload, $sig_header, $endpoint_secret
+            );
+        } catch (\UnexpectedValueException $e) {
+            return response()->json(['error' => 'Invalid payload'], 400);
+        } catch (\Stripe\Exception\SignatureVerificationException $e) {
+            return response()->json(['error' => 'Invalid signature'], 400);
+        }
+
+        // Handle the checkout.session.completed event
+        if ($event->type == 'checkout.session.completed') {
+            $session = $event->data->object;
+            
+            // Update order status
+            $order = Order::where('session_id', $session->id)->first();
             if ($order) {
                 $order->update(['payment_status' => 'paid']);
             }
-
-            return redirect('/')->with('message', 'Payment successful!');
         }
 
-        return redirect('/')->with('error', 'Payment not completed.');
+        return response()->json(['status' => 'success']);
     }
 
-    public function checkoutCancel()
+    public function checkPaymentStatus(Request $request)
     {
-        return redirect('/')->with('error', 'Payment was canceled.');
+        $request->validate([
+            'session_id' => 'required'
+        ]);
+
+        $session = Session::retrieve($request->session_id);
+
+        return response()->json([
+            'payment_status' => $session->payment_status,
+            'order_status' => $session->payment_status === 'paid' ? 'completed' : 'pending'
+        ]);
     }
 }

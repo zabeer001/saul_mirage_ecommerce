@@ -75,9 +75,9 @@ Route::post('orders-status/{id}', [OrderController::class, 'changeStatus']);
 
 
 /** Stripe Routes */
-Route::post('stripe/checkout', [StripeController::class, 'checkout'])->name('stripe-checkout');
-Route::get('stripe/success', [StripeController::class, 'checkoutSuccess'])->name('stripe-success');
-Route::get('stripe/cancel', [StripeController::class, 'checkoutCancel'])->name('stripe-cancel');
+Route::post('stripe/checkout', [StripeController::class, 'checkout'])->name('stripe.checkout');
+Route::get('stripe/success', [StripeController::class, 'checkoutSuccess'])->name('stripe.success');
+Route::get('stripe/cancel', [StripeController::class, 'checkoutCancel'])->name('stripe.cancel');
 
 Route::apiResource('newsletter', NewsLetterController::class);
 
