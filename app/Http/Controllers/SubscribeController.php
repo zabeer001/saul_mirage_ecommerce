@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\SubscribeMail;
+use App\Mail\SubscribeMailForUser;
 use App\Models\Subscribe;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class SubscribeController extends Controller
 {
@@ -61,5 +64,18 @@ class SubscribeController extends Controller
     public function destroy(Subscribe $subscribe)
     {
         //
+    }
+
+    public function sendSubscribeMail(Request $request)
+    {
+        $email = $request->email;
+
+        Mail::to('binzabirtareq@gmail.com')->send(new SubscribeMail($email));
+        Mail::to($email)->send(new SubscribeMailForUser());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Email sent!',
+        ]);
     }
 }

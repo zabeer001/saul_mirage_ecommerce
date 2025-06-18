@@ -25,7 +25,9 @@ class CustomerController extends Controller
             $search = $validated['search'] ?? null;
             $paginate_count = $validated['paginate_count'] ?? 10;
             $status = $validated['status'] ?? null;
-            $query = Customer::withCount('orders')->orderBy('updated_at', 'desc');
+            $query = Customer::withCount('orders')
+    ->withSum('orders', 'total') // this assumes each order has a 'total' column
+    ->orderBy('updated_at', 'desc');
 
             if ($search) {
                 $query->where('email', 'like', $search . '%');

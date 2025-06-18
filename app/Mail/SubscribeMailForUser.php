@@ -9,22 +9,17 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class SubscribeMail extends Mailable
+class SubscribeMailForUser extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $email;
+
 
 
     /**
      * Create a new message instance.
      */
-    public function __construct($email)
-    {
-
-        $this->email = $email;
-    }
-
+   
     /**
      * Get the message envelope.
      */
@@ -41,10 +36,8 @@ class SubscribeMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'subscribeMail',
-            with: [
-                'email' => $this->email,
-            ]
+            view: 'subscribeMailForUser',
+          
         );
     }
 

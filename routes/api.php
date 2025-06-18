@@ -14,6 +14,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\RatingnReviewsController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\StripeController;
+use App\Http\Controllers\SubscribeController;
 use App\Http\Controllers\UserImageController;
 use App\Models\NewsLetter;
 use App\Models\RatingnReviews;
@@ -88,3 +89,4 @@ Route::apiResource('customers', CustomerController::class);
 Route::get('customers-stats', [CustomerController::class, 'stats']);
 
 Route::post('send-contact-mail', [ContactController::class, 'sendContactMessage']);
+Route::post('subscribe', [SubscribeController::class, 'sendSubscribeMail']);
