@@ -46,6 +46,7 @@ class OrderController extends Controller
 
     protected array $numericFields = [
         'items',
+        'promocode_id',
         'customer_id',
         'total',
     ];
@@ -270,25 +271,6 @@ class OrderController extends Controller
             );
             $customer->save();
 
-            // Validate promocode
-            $promocodeDiscount = null;
-
-
-            if ($validated['promocode_name'] ?? null) {
-
-                $promocodeDiscount = PromoCode::where('name', $validated['promocode_name'])
-                    ->where('status', 'active')
-                    ->where('usage_limit', '>', 0)
-                    ->first();
-
-
-                if (!$promocodeDiscount) {
-                    throw new \Exception('Invalid, expired, or exhausted promocode');
-                }
-                $promocodeDiscount->usage_limit = $promocodeDiscount->usage_limit - 1;
-                $promocodeDiscount->save();
-            }
-
             // Create order
             $order = new Order();
             $order->customer_id = $customer->id;
@@ -306,17 +288,7 @@ class OrderController extends Controller
 
             // return $promocodeDiscount->type;
 
-            // Apply discount
-            if ($promocodeDiscount) {
-                if ($promocodeDiscount->type === 'percentage') {
-                    $order->total -= ($order->total * floatval($promocodeDiscount->amount) / 100);
-                } elseif ($promocodeDiscount->type === 'fixed') {
-                    $order->total -= floatval($promocodeDiscount->amount);
-                }
-                // return $promocodeDiscount->id;
-                $order->promocode_id = $promocodeDiscount->id;
-            }
-
+            
             // return $order->total;
             $order->save();
 

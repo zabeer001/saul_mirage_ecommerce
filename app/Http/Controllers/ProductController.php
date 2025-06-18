@@ -45,7 +45,7 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'image' => 'nullable|max:2048', // probably should add 'image' rule if it's an image file
             'images' => 'nullable|array',
-            'images.*' => 'nullable|max:2048', // also consider adding 'image' here if these are files
+            'images.*' => 'nullable|file|max:10240',
             'price' => 'required|integer|min:0',
             'cost_price' => 'required|integer|min:0',
             'stock_quantity' => 'nullable|integer',
@@ -75,7 +75,7 @@ class ProductController extends Controller
             $query = Product::with([
                 'media',
                 'category:id,name',
-             
+
             ])->orderBy('updated_at', 'desc');
 
             if ($search) {
@@ -264,7 +264,7 @@ class ProductController extends Controller
     public function show($id)
     {
         try {
-            $data = Product::with(['category', 'media','reviews.user'])->find($id);
+            $data = Product::with(['category', 'media', 'reviews.user'])->find($id);
             return response()->json([
                 'success' => true,
                 'message' => 'Data retrived successfully.',

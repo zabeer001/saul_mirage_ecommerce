@@ -2,67 +2,72 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use Illuminate\Http\Request;
+use Stripe\Checkout\Session;
 use Stripe\Stripe;
-use Stripe\PaymentIntent;
-use Exception;
 
 class StripeController extends Controller
 {
-    public function createPaymentIntent(Request $request)
+    public function __construct()
     {
-        // Set your secret key
-        Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
-
-        try {
-            // Validate request
-            $request->validate([
-                'amount' => 'required|numeric|min:1',
-            ]);
-
-            // Create a PaymentIntent
-            $paymentIntent = PaymentIntent::create([
-                'amount' => $request->amount * 100, // Convert to cents
-                'currency' => 'usd',
-                'payment_method_types' => ['card'],
-                'description' => 'Payment for order',
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'clientSecret' => $paymentIntent->client_secret,
-            ]);
-
-        } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error creating payment intent: ' . $e->getMessage(),
-            ], 400);
-        }
+        Stripe::setApiKey(env('STRIPE_SECRET')); // Set Stripe secret key
     }
 
-    public function confirmPayment(Request $request)
+    public function checkout(Request $request)
     {
-        Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+        // Validate request data
+        $request->validate([
+            'order_id' => 'required|exists:orders,id',
+        ]);
 
-        try {
-            $request->validate([
-                'payment_intent_id' => 'required|string',
-            ]);
+        $order = Order::findOrFail($request->order_id);
+        $user = auth()->user();
 
-            $paymentIntent = PaymentIntent::retrieve($request->payment_intent_id);
+        // Create line items for Stripe Checkout
+        $lineItems = [
+            [
+                'price_data' => [
+                    'currency' => env('CASHIER_CURRENCY', 'usd'),
+                    'unit_amount' => (float) $order->total * 100, // Convert total to cents
+                ],
+            ],
+        ];
 
-            return response()->json([
-                'success' => true,
-                'status' => $paymentIntent->status,
-                'paymentIntent' => $paymentIntent,
-            ]);
+        // Create Stripe Checkout session
+        $checkoutSession = Session::create([
+            'payment_method_types' => ['card'],
+            'line_items' => $lineItems,
+            'customer_email' => $user ? $user->email : $request->input('email'),
+            'mode' => 'payment',
+            'success_url' => route('stripe-success') . '?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => route('stripe-cancel'),
+            'metadata' => ['order_id' => $order->id],
+        ]);
 
-        } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error confirming payment: ' . $e->getMessage(),
-            ], 400);
+        return response()->json(['payment_url' => $checkoutSession->url]);
+    }
+
+    public function checkoutSuccess(Request $request)
+    {
+        $sessionId = $request->query('session_id');
+        $checkoutSession = Session::retrieve($sessionId);
+
+        if ($checkoutSession->payment_status === 'paid') {
+            // Update order status to paid
+            $order = Order::where('session_id', $sessionId)->first();
+            if ($order) {
+                $order->update(['payment_status' => 'paid']);
+            }
+
+            return redirect('/')->with('message', 'Payment successful!');
         }
+
+        return redirect('/')->with('error', 'Payment not completed.');
+    }
+
+    public function checkoutCancel()
+    {
+        return redirect('/')->with('error', 'Payment was canceled.');
     }
 }

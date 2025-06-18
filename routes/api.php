@@ -66,18 +66,18 @@ Route::apiResource('promocodes', PromoCodeController::class);
 
 Route::apiResource('orders', OrderController::class);
 Route::get('order-user', [OrderController::class, 'history']);
-Route::get('/orders/{uniq_id}', [OrderController::class, 'show']);
+Route::get('orders/{uniq_id}', [OrderController::class, 'show']);
 Route::get('order-stats', [OrderController::class, 'last_six_months_stats']);
 Route::get('order-stats-three', [OrderController::class, 'orderStatsThree']);
 Route::get('order-stats-table', [OrderController::class, 'stats']);
 Route::get('self-order-history', [OrderController::class, 'selfOrderHistory']);
-Route::post('/orders-status/{id}', [OrderController::class, 'changeStatus']);
+Route::post('orders-status/{id}', [OrderController::class, 'changeStatus']);
 
 
 /** Stripe Routes */
-Route::get('stripe/payment', [StripeController::class, 'payWithStripe'])->name('stripe.payment');
-Route::get('stripe/success', [StripeController::class, 'stripeSuccess'])->name('stripe.success');
-Route::get('stripe/cancel', [StripeController::class, 'stripeCancel'])->name('stripe.cancel');
+Route::post('stripe/checkout', [StripeController::class, 'checkout'])->name('stripe-checkout');
+Route::get('stripe/success', [StripeController::class, 'checkoutSuccess'])->name('stripe-success');
+Route::get('stripe/cancel', [StripeController::class, 'checkoutCancel'])->name('stripe-cancel');
 
 Route::apiResource('newsletter', NewsLetterController::class);
 
