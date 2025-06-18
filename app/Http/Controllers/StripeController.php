@@ -103,31 +103,54 @@ class StripeController extends Controller
 
 
     public function checkoutSuccess(Request $request)
-{
-    $sessionId = $request->query('session_id');
-    $checkoutSession = Session::retrieve($sessionId);
-    $orderId = $checkoutSession->metadata->order_id;
-    $order_id = (int) $orderId;
+    {
+        $sessionId = $request->query('session_id');
 
-    if ($checkoutSession->payment_status === 'paid') {
-        $order = Order::findOrFail($order_id);
-        if ($order) {
-            $order->update(['payment_status' => 'paid']);
+        if (!$sessionId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Missing session ID. Redirecting to Google...',
+                'redirect_url' => 'https://www.google.com'
+            ], 400);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Payment successful!',
-            'redirect_url' => 'https://your-nextjs-site.com/success'
-        ]);
-    }
+        try {
+            $checkoutSession = Session::retrieve($sessionId);
+            $orderId = $checkoutSession->metadata->order_id;
+            $order_id = (int) $orderId;
 
-    return response()->json([
-        'success' => false,
-        'message' => 'Payment not completed.',
-        'redirect_url' => 'https://your-nextjs-site.com/error'
-    ], 400);
-}
+            if ($checkoutSession->payment_status === 'paid') {
+                $order = Order::find($order_id);
+                if ($order) {
+                    $order->update(['payment_status' => 'paid']);
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Payment successful! Redirecting to Google...',
+                        
+                        'redirect_url' => 'https://www.google.com'
+                    ], 200);
+                } else {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Order not found. Redirecting to Google...',
+                        'redirect_url' => 'https://www.google.com'
+                    ], 404);
+                }
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment not completed. Redirecting to Google...',
+                    'redirect_url' => 'https://www.google.com'
+                ], 400);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error processing payment: ' . $e->getMessage() . '. Redirecting to Google...',
+                'redirect_url' => 'https://www.google.com'
+            ], 500);
+        }
+    }
 
     public function checkoutCancel()
     {
