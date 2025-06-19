@@ -51,11 +51,13 @@ class PromoCodeController extends Controller
                 'paginate_count' => 'nullable|integer|min:1',
                 'search' => 'nullable|string|max:255',
                 'for' => 'nullable|string|max:255',
+                'status' => 'nullable|string|max:255',
             ]);
             // return 'ok';
             $search = $validated['search'] ?? null;
             $paginate_count = $validated['paginate_count'] ?? 10;
             $for = $validated['for'] ?? null;
+            $status = $validated['status'] ?? null;
 
             $query = PromoCode::withCount('orders');
 
@@ -67,6 +69,9 @@ class PromoCodeController extends Controller
                 } else {
                     $query->where('name', 'like', $search . '%');
                 }
+            }
+            if($status){
+                 $query->where('status', $status);
             }
 
             $categories = $query->paginate($paginate_count);
