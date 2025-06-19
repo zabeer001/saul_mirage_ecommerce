@@ -38,7 +38,6 @@ class PromoCodeController extends Controller
             'usage_limit' => 'nullable|integer|min:0',
             'amount' => 'nullable|integer|min:0',
         ]);
-
     }
 
     /**
@@ -47,19 +46,27 @@ class PromoCodeController extends Controller
     public function index(Request $request)
     {
         try {
-            
+
             $validated = $request->validate([
                 'paginate_count' => 'nullable|integer|min:1',
                 'search' => 'nullable|string|max:255',
+                'for' => 'nullable|string|max:255',
             ]);
-// return 'ok';
+            // return 'ok';
             $search = $validated['search'] ?? null;
             $paginate_count = $validated['paginate_count'] ?? 10;
+            $for = $validated['for'] ?? null;
 
-           $query = PromoCode::withCount('orders');
+            $query = PromoCode::withCount('orders');
 
             if ($search) {
-                $query->where('name', 'like', $search . '%');
+                if ($for == "use_in_order") {
+
+                    $query->where('name', $search); // Exact match
+
+                } else {
+                    $query->where('name', 'like', $search . '%');
+                }
             }
 
             $categories = $query->paginate($paginate_count);
@@ -176,7 +183,7 @@ class PromoCodeController extends Controller
     public function destroy($id)
     {
         try {
-             $promoCode = PromoCode::findOrFail($id);
+            $promoCode = PromoCode::findOrFail($id);
 
             // Attempt to delete the category
             $promoCode->delete();
