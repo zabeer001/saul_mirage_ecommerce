@@ -66,11 +66,13 @@ class ProductController extends Controller
                 'paginate_count' => 'nullable|integer|min:1',
                 'search' => 'nullable|string|max:255',
                 'status' => 'nullable|string|max:255', // adjust as needed
+                'category_id' => 'nullable|integer'
             ]);
 
             $search = $validated['search'] ?? null;
             $paginate_count = $validated['paginate_count'] ?? 10;
             $status = $validated['status'] ?? null;
+            $category_id = $validated['category_id'] ?? null;
 
             $query = Product::with([
                 'media',
@@ -84,6 +86,9 @@ class ProductController extends Controller
 
             if ($status) {
                 $query->where('status', $status);
+            }
+             if ($category_id) {
+                $query->where('category_id', $category_id);
             }
 
             $data = $query->paginate($paginate_count);
