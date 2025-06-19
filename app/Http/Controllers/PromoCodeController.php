@@ -196,4 +196,14 @@ class PromoCodeController extends Controller
             return HelperMethods::handleException($e, 'Failed to delete data.');
         }
     }
+    public function stats()
+    {
+        $activePromocodeCount = PromoCode::where('status', 'active')->count();
+        $inactivePromocodeCount = PromoCode::where('status', 'inactive')->count();
+
+        return response()->json([
+            'active' => $activePromocodeCount,
+            'inactive' => $inactivePromocodeCount,
+        ]);
+    }
 }

@@ -207,6 +207,8 @@ class ReviewController extends Controller
 
             $paginate_count = $validated['paginate_count'] ?? 10;
 
+            $happyUsers = Customer::count();
+
             // Step 1: Get unique review IDs (latest review per user-product pair)
             $reviewIds = Review::where('rating', 5)
                 ->selectRaw('MAX(id) as id')
@@ -222,6 +224,7 @@ class ReviewController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $data,
+                'happyUser' =>  $happyUsers,
                 'current_page' => $data->currentPage(),
                 'total_pages' => $data->lastPage(),
                 'per_page' => $data->perPage(),

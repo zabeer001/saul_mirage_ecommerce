@@ -63,6 +63,7 @@ Route::get('products-stats', [ProductController::class, 'stats']);
 
 
 Route::apiResource('promocodes', PromoCodeController::class);
+Route::get('promocode-stats', [PromoCodeController::class, 'stats']);
 
 Route::apiResource('orders', OrderController::class);
 Route::get('order-user', [OrderController::class, 'history']);

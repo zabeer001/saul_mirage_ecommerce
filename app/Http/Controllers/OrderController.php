@@ -116,7 +116,7 @@ class OrderController extends Controller
             $status = $validated['status'] ?? null;
 
             // Initialize query with relationships
-            $query = Order::with(['promocode:id,name', 'customer'])->orderBy('updated_at', 'desc');
+            $query = Order::with(['promocode:id,name', 'customer','products.media'])->orderBy('updated_at', 'desc');
 
             // Check if user is authenticated and their role
             $user = null;
