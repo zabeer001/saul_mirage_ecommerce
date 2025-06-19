@@ -116,7 +116,7 @@ class OrderController extends Controller
             $status = $validated['status'] ?? null;
 
             // Initialize query with relationships
-            $query = Order::with(['promocode:id,name', 'customer','products.media'])->orderBy('updated_at', 'desc');
+            $query = Order::with(['promocode:id,name', 'customer'])->orderBy('updated_at', 'desc');
 
             // Check if user is authenticated and their role
             $user = null;
@@ -437,7 +437,8 @@ class OrderController extends Controller
         try {
             $data = Order::with([
                 'products',
-                'promocode:id,name' // Only id and name from promocode
+                'promocode:id,name' ,
+                'products.media'// Only id and name from promocode
             ])->where('uniq_id', $uniq_id)->first();
 
             if (!$data) {
