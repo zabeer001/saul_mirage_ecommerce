@@ -581,7 +581,9 @@ class OrderController extends Controller
 
         $order->save();
 
-        return 'status updated Successfully';
+       return response()->json([
+    'message' => 'Status updated successfully'
+]);
     }
 
     public function history(Request $request)
