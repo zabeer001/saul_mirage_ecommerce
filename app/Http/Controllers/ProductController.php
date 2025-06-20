@@ -78,7 +78,7 @@ class ProductController extends Controller
                 'media',
                 'category:id,name',
             ])
-                ->withCount('reviews')    
+                ->withCount('reviews')
                 ->withAvg('reviews', 'rating')
                 ->orderBy('updated_at', 'desc');
 
@@ -312,10 +312,10 @@ class ProductController extends Controller
 
             $query = Product::withCount('orders')
                 ->with([
-
                     'category:id,name',
                     'media'
-                ])
+                ])->withCount('reviews')
+                ->withAvg('reviews', 'rating')
                 ->orderByDesc('orders_count');
 
             if ($search) {
