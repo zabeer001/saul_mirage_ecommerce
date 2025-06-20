@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\NewPasswordController;
 use App\Http\Controllers\NewsLetterController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\RatingnReviewsController;
@@ -39,7 +40,12 @@ Route::post('login', [AuthController::class, 'login']);
 Route::get('me', [AuthController::class, 'me'])->middleware('auth:api');
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:api');
 
+
+
 // Password reset routes
+Route::post('forget-password', [NewPasswordController::class, 'forgetPassword']);
+Route::post('forget/password/reset', [NewPasswordController::class, 'reset'])->name('password.reset');
+
 Route::post('password/email', [AuthController::class, 'sendResetOTP']);
 Route::post('password/verify-otp', [AuthController::class, 'verifyResetOTP'])->name('password.verify-otp');
 Route::post('password/reset', [AuthController::class, 'passwordReset'])->name('password.reset');

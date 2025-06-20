@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Env;
 use Tymon\JWTAuth\Contracts\JWTSubject; // <-- Ensure this is imported
 
 class User extends Authenticatable implements JWTSubject // <-- Implement JWTSubject interface
@@ -66,5 +68,11 @@ class User extends Authenticatable implements JWTSubject // <-- Implement JWTSub
     {
         return $this->hasMany(Review::class);
     }
-}
 
+    public function sendPasswordResetNotification($token)
+    {
+        $frontendUrl = env('FRONTEND_URL');
+        $url = $frontendUrl . '/reset-password?token=' . $token . '&email=' . urlencode($this->email);
+        $this->notify(new ResetPasswordNotification($url));
+    }
+}
