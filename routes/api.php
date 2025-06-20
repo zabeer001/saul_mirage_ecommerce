@@ -43,8 +43,8 @@ Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:api')
 
 
 // Password reset routes
-Route::post('email-notification-forget-password', [NewPasswordController::class, 'forgetPassword']);
-Route::post('forget/password/reset/email', [NewPasswordController::class, 'reset'])->name('password.reset');
+Route::post('forget-password', [NewPasswordController::class, 'forgetPassword']);
+Route::post('forget/password/reset', [NewPasswordController::class, 'reset'])->name('password.reset');
 
 Route::post('password/email', [AuthController::class, 'sendResetOTP']);
 Route::post('password/verify-otp', [AuthController::class, 'verifyResetOTP'])->name('password.verify-otp');
