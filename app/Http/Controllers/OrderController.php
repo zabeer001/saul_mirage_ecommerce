@@ -48,6 +48,7 @@ class OrderController extends Controller
         'items',
         'promocode_id',
         'customer_id',
+        'shipping_price',
         'total',
     ];
 
