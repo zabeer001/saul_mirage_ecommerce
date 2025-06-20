@@ -105,13 +105,10 @@ class StripeController extends Controller
     public function checkoutSuccess(Request $request)
     {
         $sessionId = $request->query('session_id');
+        $frontendUrl = env('FRONTEND_URL');
 
         if (!$sessionId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Missing session ID. Redirecting to Google...',
-                'redirect_url' => 'https://www.google.com'
-            ], 400);
+            return redirect($frontendUrl . '/payment/canceled');
         }
 
         try {
@@ -123,37 +120,22 @@ class StripeController extends Controller
                 $order = Order::find($order_id);
                 if ($order) {
                     $order->update(['payment_status' => 'paid']);
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Payment successful! Redirecting to Google...',
-                        
-                        'redirect_url' => 'https://www.google.com'
-                    ], 200);
+                    return redirect($frontendUrl . '/payment/success');
                 } else {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Order not found. Redirecting to Google...',
-                        'redirect_url' => 'https://www.google.com'
-                    ], 404);
+                    return redirect($frontendUrl . '/payment/canceled');
                 }
             } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Payment not completed. Redirecting to Google...',
-                    'redirect_url' => 'https://www.google.com'
-                ], 400);
+                return redirect($frontendUrl . '/payment/canceled');
             }
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error processing payment: ' . $e->getMessage() . '. Redirecting to Google...',
-                'redirect_url' => 'https://www.google.com'
-            ], 500);
+            return redirect($frontendUrl . '/payment/canceled');
         }
     }
 
+    
     public function checkoutCancel()
     {
-        return redirect('/')->with('error', 'Payment was canceled.');
+        $frontendUrl = env('FRONTEND_URL');
+        return redirect($frontendUrl . '/payment/canceled');
     }
 }
