@@ -438,7 +438,8 @@ class OrderController extends Controller
             $data = Order::with([
                 'products',
                 'promocode:id,name' ,
-                'products.media'// Only id and name from promocode
+                'products.media',// Only id and name from promocode
+                'customer'
             ])->where('uniq_id', $uniq_id)->first();
 
             if (!$data) {
