@@ -77,8 +77,10 @@ class ProductController extends Controller
             $query = Product::with([
                 'media',
                 'category:id,name',
-
-            ])->orderBy('updated_at', 'desc');
+            ])
+                ->withCount('reviews')    
+                ->withAvg('reviews', 'rating')
+                ->orderBy('updated_at', 'desc');
 
             if ($search) {
                 $query->where('name', 'like', $search . '%');
@@ -87,7 +89,7 @@ class ProductController extends Controller
             if ($status) {
                 $query->where('status', $status);
             }
-             if ($category_id) {
+            if ($category_id) {
                 $query->where('category_id', $category_id);
             }
 

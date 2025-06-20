@@ -11,6 +11,8 @@ return [
     'allowed_origins' => [
         'http://localhost:3000',
         'http://localhost:3001',
+        'https://seoul-mirage-dashboard.vercel.app',
+        'https://seoulmirage-frontend.vercel.app',
     ],
 
 
