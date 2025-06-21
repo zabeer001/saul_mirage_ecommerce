@@ -63,7 +63,6 @@ class GoogleController extends Controller
                     'phone' => $user->phone,
                 ],
             ], 200);
-
         } catch (\Exception $e) {
             return response()->json(['error' => 'Authentication failed: ' . $e->getMessage()], 500);
         }
