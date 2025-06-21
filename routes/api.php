@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\NewPasswordController;
 use App\Http\Controllers\NewsLetterController;
 use App\Http\Controllers\OrderController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\SubscribeController;
 use App\Http\Controllers\UserImageController;
 use App\Models\NewsLetter;
 use App\Models\RatingnReviews;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -97,3 +99,7 @@ Route::get('customers-stats', [CustomerController::class, 'stats']);
 
 Route::post('send-contact-mail', [ContactController::class, 'sendContactMessage']);
 Route::post('subscribe', [SubscribeController::class, 'sendSubscribeMail']);
+
+
+Route::get('google/auth/redirect', [GoogleController::class, 'redirectToGoogle']);
+Route::get('google/auth/callback', [GoogleController::class, 'handleGoogleCallback']);
