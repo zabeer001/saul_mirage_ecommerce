@@ -7,17 +7,15 @@ use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log;
 
 class GoogleController extends Controller
 {
 
-   public function redirectToGoogle()
-{
-    $url = Socialite::driver('google')->stateless()->redirect()->getTargetUrl();
-    Log::info('Redirect URL: ' . $url); // Log the URL
-    return redirect($url); // Direct redirect
-}
+    public function redirectToGoogle()
+    {
+        $url = Socialite::driver('google')->stateless()->redirect()->getTargetUrl();
+        return response()->json(['url' => $url]);
+    }
 
     public function handleGoogleCallback(Request $request)
     {
