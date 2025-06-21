@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class GoogleController extends Controller
 {
@@ -17,25 +18,26 @@ class GoogleController extends Controller
         return response()->json(['url' => $url]);
     }
 
-    public function handleGoogleCallback(Request $request)
+ public function handleGoogleCallback(Request $request)
     {
         try {
-            // Validate the code parameter
+            Log::info('Callback request received', ['request' => $request->all()]); // Log the full request
+
             if (!$request->has('code')) {
+                Log::warning('Missing authorization code in callback');
                 return response()->json(['error' => 'Authorization code missing'], 400);
             }
 
-            // Retrieve Google user
             $googleUser = Socialite::driver('google')->stateless()->user();
+            Log::info('Google user data', ['user' => $googleUser->getAttributes()]); // Log Google user details
 
-            // Find user by google_id
             $user = User::where('google_id', $googleUser->id)->first();
 
             if ($user) {
-                // If user exists, generate JWT token
+                Log::info('Existing user found', ['user_id' => $user->id]);
                 $token = JWTAuth::fromUser($user);
             } else {
-                // If user does not exist, create a new user
+                Log::info('Creating new user', ['email' => $googleUser->email]);
                 $user = User::create([
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
@@ -44,12 +46,11 @@ class GoogleController extends Controller
                     'role' => 'user',
                     'image' => $googleUser->avatar ?? null,
                 ]);
-
-                // Generate JWT token for new user
                 $token = JWTAuth::fromUser($user);
+                Log::info('New user created', ['user_id' => $user->id]);
             }
 
-            // Return token and user details
+            Log::info('JWT token generated', ['token' => $token]);
             return response()->json([
                 'message' => 'Google authentication successful',
                 'access_token' => $token,
@@ -63,7 +64,9 @@ class GoogleController extends Controller
                     'phone' => $user->phone,
                 ],
             ], 200);
+
         } catch (\Exception $e) {
+            Log::error('Error in handleGoogleCallback: ' . $e->getMessage());
             return response()->json(['error' => 'Authentication failed: ' . $e->getMessage()], 500);
         }
     }
