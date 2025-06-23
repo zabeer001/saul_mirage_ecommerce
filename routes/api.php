@@ -54,6 +54,8 @@ Route::post('password/reset', [AuthController::class, 'passwordReset'])->name('p
 Route::post('password/reset-for-auth-user', [AuthController::class, 'passwordResetForAuthUser']);
 Route::post('change-profile-details', [AuthController::class, 'changeProfileDetails']);
 
+Route::post('google/auth/jwt-process', [GoogleController::class, 'process']);
+
 
 
 
