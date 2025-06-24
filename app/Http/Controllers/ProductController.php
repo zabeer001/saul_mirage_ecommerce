@@ -96,7 +96,7 @@ class ProductController extends Controller
             if ($category_id) {
                 $query->where('category_id', $category_id);
             }
-            if ($category_id) {
+            if ($arrival_status) {
                 $query->where('arrival_status', $arrival_status);
             }
 
