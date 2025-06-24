@@ -20,6 +20,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('category_id'); // Numeric field (and likely a foreign key)
             $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
             $table->string('status'); // Text field
+            $table->string('arrival_status')->default('regular');
             $table->string('cost_price'); // Text field
             $table->integer('stock_quantity')->default(1); // Text field
             $table->integer('sales')->default(0); // Text field

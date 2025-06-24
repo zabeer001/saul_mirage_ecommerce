@@ -24,6 +24,7 @@ class ProductController extends Controller
         'name',
         'description',
         'stock_quantity',
+        'arrival_status'
     ];
 
     protected $imageFields = ['image'];
@@ -42,6 +43,7 @@ class ProductController extends Controller
         return $request->validate([
             'name' => 'required|string|max:255',
             'status' => 'nullable|string|max:255',
+            'arrival_status' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|max:2048', // probably should add 'image' rule if it's an image file
             'images' => 'nullable|array',
@@ -66,6 +68,7 @@ class ProductController extends Controller
                 'paginate_count' => 'nullable|integer|min:1',
                 'search' => 'nullable|string|max:255',
                 'status' => 'nullable|string|max:255', // adjust as needed
+                'arrival_status' => 'nullable|string|max:255',
                 'category_id' => 'nullable|integer'
             ]);
 
@@ -73,6 +76,7 @@ class ProductController extends Controller
             $paginate_count = $validated['paginate_count'] ?? 10;
             $status = $validated['status'] ?? null;
             $category_id = $validated['category_id'] ?? null;
+            $arrival_status = $validated['arrival_status'] ?? null;
 
             $query = Product::with([
                 'media',
@@ -91,6 +95,9 @@ class ProductController extends Controller
             }
             if ($category_id) {
                 $query->where('category_id', $category_id);
+            }
+            if ($category_id) {
+                $query->where('arrival_status', $arrival_status);
             }
 
             $data = $query->paginate($paginate_count);
